@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Qwen Studio Linux
+Comment=Desktop AI assistant for Qwen Chat
+Exec=qwen-studio-linux %U
+Icon=qwen-studio-linux
+Type=Application
+Categories=Utility;Development;Network;
+MimeType=x-scheme-handler/qwen;
+Keywords=AI;Qwen;Chat;Assistant;
+StartupNotify=true
+StartupWMClass=qwen-studio-linux

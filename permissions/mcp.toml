@@ -1,0 +1,11 @@
+[[permission]]
+identifier = "mcp"
+description = "MCP permissions for Qwem Studio Linux"
+commands.allow = [
+  "mcp_client_connect",
+  "mcp_client_close",
+  "mcp_client_tool_list",
+  "mcp_client_tool_call",
+  "mcp_client_get_config",
+  "mcp_client_update_config"
+]

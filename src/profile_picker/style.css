@@ -1,0 +1,239 @@
+/* =========================================
+   CSS: Variáveis, Reset e Estilos Base
+   ========================================= */
+:root {
+    --bg: #0f1115;
+    --surface: #181b22;
+    --surface-hover: #21252e;
+    --border: #2b303b;
+    --text: #e6e8ec;
+    --text-muted: #9aa3b2;
+    --accent: #6d4aff;
+    --accent-hover: #5a3ae0;
+    --danger: #e5484d;
+    --danger-hover: #c93d42;
+    --radius: 8px;
+    --transition: 150ms ease;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 24px;
+    line-height: 1.5;
+}
+
+.app-container {
+    width: 100%;
+    max-width: 560px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* =========================================
+   CSS: Cabeçalho e Formulário de Criação
+   ========================================= */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header h1 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+#create-form {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    gap: 12px;
+    animation: fadeIn 200ms ease;
+}
+
+#create-form.active { display: flex; }
+
+.input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(109, 74, 255, 0.25);
+}
+
+/* =========================================
+   CSS: Botões
+   ========================================= */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all var(--transition);
+    white-space: nowrap;
+}
+
+.btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: #fff;
+}
+.btn-primary:hover { background: var(--accent-hover); }
+
+.btn-ghost {
+    background: transparent;
+    color: var(--text-muted);
+    border-color: var(--border);
+}
+.btn-ghost:hover {
+    background: var(--surface-hover);
+    color: var(--text);
+}
+
+.btn-danger {
+    background: transparent;
+    color: var(--text-muted);
+    border-color: var(--border);
+}
+.btn-danger:hover {
+    background: rgba(229, 72, 77, 0.1);
+    color: var(--danger);
+    border-color: var(--danger);
+}
+
+.btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+
+/* =========================================
+   CSS: Lista de Perfis e Cards
+   ========================================= */
+#profile-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.profile-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
+    animation: fadeIn 250ms ease;
+}
+
+.profile-card:hover {
+    background: var(--surface-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #9b7aff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.profile-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.profile-name {
+    font-weight: 500;
+    font-size: 1rem;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.profile-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.input-inline {
+    background: var(--bg);
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    color: var(--text);
+    padding: 4px 8px;
+    font-size: 1rem;
+    width: 100%;
+    max-width: 200px;
+}
+.input-inline:focus { outline: none; box-shadow: 0 0 0 2px rgba(109, 74, 255, 0.3); }
+
+/* =========================================
+   CSS: Estado Vazio e Animações
+   ========================================= */
+#empty-state {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    text-align: center;
+    color: var(--text-muted);
+    animation: fadeIn 300ms ease;
+}
+
+#empty-state svg {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Scrollbar discreta para WebKit */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }

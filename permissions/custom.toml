@@ -1,0 +1,71 @@
+[[permission]]
+identifier = "mcp-client-connect"
+description = "Allow connecting to MCP servers"
+commands.allow = ["mcp_client_connect"]
+
+[[permission]]
+identifier = "mcp-client-close"
+description = "Allow closing MCP connections"
+commands.allow = ["mcp_client_close"]
+
+[[permission]]
+identifier = "mcp-client-tool-list"
+description = "Allow listing MCP tools"
+commands.allow = ["mcp_client_tool_list"]
+
+[[permission]]
+identifier = "mcp-client-tool-call"
+description = "Allow calling MCP tools"
+commands.allow = ["mcp_client_tool_call"]
+
+[[permission]]
+identifier = "mcp-client-get-config"
+description = "Allow getting MCP configuration"
+commands.allow = ["mcp_client_get_config"]
+
+[[permission]]
+identifier = "mcp-client-update-config"
+description = "Allow updating MCP configuration"
+commands.allow = ["mcp_client_update_config"]
+
+[[permission]]
+identifier = "window-commands"
+description = "Allow window management commands"
+commands.allow = [
+  "open_devtool",
+  "toggle_hidden_devtools",
+  "get_app_version",
+  "get_platform_info",
+  "open_external_link",
+  "show_native_dialog",
+  "request_file_access",
+  "switch_theme",
+  "switch_ln",
+  "update_title_bar_for_system_theme",
+  "get_language",
+  "minimize_window",
+  "maximize_window",
+  "close_window",
+  "webview_loaded",
+  "get_update_info",
+  "install_update_with_progress",
+  "restart_app",
+  "create_new_window",
+  "read_clipboard_image"
+]
+
+[[permission]]
+identifier = "settings-commands"
+description = "Allow settings management commands"
+commands.allow = ["get_setting", "set_setting"]
+
+[[permission]]
+identifier = "profile-commands"
+description = "Allow profile management commands"
+commands.allow = [
+  "list_profiles",
+  "create_profile",
+  "rename_profile",
+  "delete_profile",
+  "launch_profile"
+]

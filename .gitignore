@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+target/
+dist/
+dev.sh
+package-lock.json
+
+# Build artifacts
+*.deb
+*.rpm
+*.AppImage
+*.sig
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.kilo
+.opencode
+
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+crash-logs/
+
+# Runtime profile data (WebKit cache, cookies, localstorage, sessions)
+profiles/
+
+# Environment
+.env
+.env.local
+
+AGENTS.md
+icon.png
