@@ -69,6 +69,9 @@ pub fn run() {
             profile::commands::launch_profile,
         ])
         .build(tauri::generate_context!())
-        .expect("Failed to build application")
+        .unwrap_or_else(|e| {
+            log::error!("[Fatal] Failed to build application: {}", e);
+            panic!("Failed to build application: {}", e);
+        })
         .run(app::lifecycle::on_run_event);
 }

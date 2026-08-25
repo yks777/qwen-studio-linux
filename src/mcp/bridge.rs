@@ -63,10 +63,19 @@ impl Bridge {
         {
             self.pending.lock().await.insert(id, tx);
         }
-        {
+        if let Err(e) = {
             let mut stdin = self.stdin.lock().await;
-            stdin.write_all(line.as_bytes()).await?;
-            stdin.flush().await?;
+            let res: Result<(), std::io::Error> = async {
+                stdin.write_all(line.as_bytes()).await?;
+                stdin.flush().await?;
+                Ok(())
+            }
+            .await;
+            res
+        } {
+            // Remove the pending entry we just inserted — caller already awaiting
+            self.pending.lock().await.remove(&id);
+            return Err(anyhow::anyhow!("Bridge write failed: {}", e));
         }
 
         match tokio::time::timeout(Duration::from_secs(60), rx).await {
@@ -77,6 +86,8 @@ impl Bridge {
             Ok(Err(_)) => Err(anyhow::anyhow!("Channel closed")),
             Err(_) => {
                 log::warn!("[Bridge] TIMEOUT #{} method={}", id, method);
+                // Remove stale entry so late dispatch doesn't leak
+                self.pending.lock().await.remove(&id);
                 Err(anyhow::anyhow!("Timeout"))
             }
         }

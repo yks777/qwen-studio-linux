@@ -52,7 +52,10 @@ pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
 
     let icon_bytes = include_bytes!("../../icons/32x32.png");
     let img = image::load_from_memory(icon_bytes)
-        .expect("failed to load tray icon")
+        .unwrap_or_else(|e| {
+            log::error!("[Tray] failed to load icon: {}", e);
+            image::DynamicImage::new_rgba8(32, 32)
+        })
         .into_rgba8();
     let (width, height) = img.dimensions();
     let rgba = img.into_raw();

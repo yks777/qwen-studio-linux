@@ -102,7 +102,11 @@ pub fn open_profile_window(app: &AppHandle, profile: &Profile) -> Result<(), Box
 
     let _window = tauri::WebviewWindowBuilder::new(
             app, &label,
-            WebviewUrl::External(manager::PROFILE_MAIN_URL.parse().unwrap())
+            WebviewUrl::External(
+                manager::PROFILE_MAIN_URL
+                    .parse()
+                    .unwrap_or_else(|_| "https://chat.qwen.ai".parse().expect("hardcoded url valid")),
+            )
         )
         .title("Qwem Studio Linux")
         .inner_size(1280.0, 840.0)
@@ -296,8 +300,17 @@ pub fn on_run_event(app_handle: &AppHandle, event: tauri::RunEvent) {
             }
             tauri::WindowEvent::Focused(true) if label.starts_with("main-") => {
                 if let Some(state) = app_handle.try_state::<AppState>() {
-                    let mut focused = state.last_focused.blocking_write();
-                    *focused = Some(label.to_string());
+                    // Use try_write to never panic if the lock is held by an async task.
+                    // Fallback to async spawn if contended.
+                    if let Ok(mut focused) = state.last_focused.try_write() {
+                        *focused = Some(label.to_string());
+                    } else {
+                        let focused = state.last_focused.clone();
+                        let label = label.to_string();
+                        tauri::async_runtime::spawn(async move {
+                            *focused.write().await = Some(label);
+                        });
+                    }
                 }
             }
             _ => {}

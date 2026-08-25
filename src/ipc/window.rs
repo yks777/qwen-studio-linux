@@ -8,7 +8,9 @@ static WINDOW_COUNTER: AtomicU32 = AtomicU32::new(1);
 pub async fn create_new_window(app: tauri::AppHandle) -> Result<String, String> {
     let id = WINDOW_COUNTER.fetch_add(1, Ordering::SeqCst);
     let label = format!("window-{}", id);
-    let url = "https://chat.qwen.ai".parse().unwrap();
+    let url = "https://chat.qwen.ai"
+        .parse()
+        .map_err(|e: url::ParseError| e.to_string())?;
     let script = crate::webview::js_injector::build_init_script();
 
     let mut builder = tauri::WebviewWindowBuilder::new(&app, &label, tauri::WebviewUrl::External(url))
@@ -21,7 +23,7 @@ pub async fn create_new_window(app: tauri::AppHandle) -> Result<String, String> 
         .initialization_script(&script)
         .on_navigation(|url| crate::webview::navigation::is_allowed(url.as_ref()));
 
-    if let Some(profile) = crate::app::window_utils::focused_profile(&app) {
+    if let Some(profile) = crate::app::window_utils::focused_profile_async(&app).await {
         builder = builder.data_directory(crate::profile::manager::data_dir_for(&profile.id));
     }
 
@@ -34,7 +36,7 @@ pub async fn create_new_window(app: tauri::AppHandle) -> Result<String, String> 
 
 #[tauri::command]
 pub async fn minimize_window(app: tauri::AppHandle) -> Result<(), String> {
-    if let Some(w) = crate::app::window_utils::active_webview_window(&app) {
+    if let Some(w) = crate::app::window_utils::active_webview_window_async(&app).await {
         w.minimize().map_err(|e| e.to_string())?;
     }
     Ok(())
@@ -42,7 +44,7 @@ pub async fn minimize_window(app: tauri::AppHandle) -> Result<(), String> {
 
 #[tauri::command]
 pub async fn maximize_window(app: tauri::AppHandle) -> Result<(), String> {
-    if let Some(w) = crate::app::window_utils::active_webview_window(&app) {
+    if let Some(w) = crate::app::window_utils::active_webview_window_async(&app).await {
         if w.is_maximized().unwrap_or(false) {
             w.unmaximize().map_err(|e| e.to_string())?;
         } else {
@@ -54,7 +56,7 @@ pub async fn maximize_window(app: tauri::AppHandle) -> Result<(), String> {
 
 #[tauri::command]
 pub async fn close_window(app: tauri::AppHandle) -> Result<(), String> {
-    if let Some(w) = crate::app::window_utils::active_webview_window(&app) {
+    if let Some(w) = crate::app::window_utils::active_webview_window_async(&app).await {
         w.close().map_err(|e| e.to_string())?;
     }
     Ok(())
@@ -62,7 +64,7 @@ pub async fn close_window(app: tauri::AppHandle) -> Result<(), String> {
 
 #[tauri::command]
 pub async fn open_devtool(app: tauri::AppHandle) -> Result<(), String> {
-    if let Some(w) = crate::app::window_utils::active_webview_window(&app) {
+    if let Some(w) = crate::app::window_utils::active_webview_window_async(&app).await {
         w.open_devtools();
     }
     Ok(())
@@ -70,7 +72,9 @@ pub async fn open_devtool(app: tauri::AppHandle) -> Result<(), String> {
 
 #[tauri::command]
 pub async fn toggle_hidden_devtools(app: tauri::AppHandle) -> Result<bool, String> {
-    let w = crate::app::window_utils::active_webview_window(&app).ok_or("No main window")?;
+    let w = crate::app::window_utils::active_webview_window_async(&app)
+        .await
+        .ok_or("No main window")?;
     if w.is_devtools_open() {
         w.close_devtools();
         Ok(false)
@@ -86,7 +90,7 @@ pub async fn open_external_link(app: tauri::AppHandle, url: String) -> Result<bo
         return Ok(false);
     }
     if crate::auth::domains::is_auth_url(&url) {
-        if let Some(w) = crate::app::window_utils::active_webview_window(&app) {
+        if let Some(w) = crate::app::window_utils::active_webview_window_async(&app).await {
             let _ = w.eval(format!("window.location.href = '{}';", url.replace('\'', "\\'")));
             return Ok(true);
         }

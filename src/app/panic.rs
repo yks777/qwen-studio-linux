@@ -17,30 +17,46 @@ fn log_crash_to_file(info: &panic::PanicHookInfo) {
         .as_secs();
     let log_file = log_dir.join(format!("crash-{}.log", timestamp));
 
-    let message = info.payload().downcast_ref::<&str>()
-        .unwrap_or(&"Unknown panic")
-        .to_string();
+    // Payload can be &str or String — handle both.
+    let message = if let Some(s) = info.payload().downcast_ref::<&str>() {
+        (*s).to_string()
+    } else if let Some(s) = info.payload().downcast_ref::<String>() {
+        s.clone()
+    } else {
+        "Unknown panic (non-string payload)".to_string()
+    };
     let location = info.location()
         .map(|l| format!("{}:{}:{}", l.file(), l.line(), l.column()))
         .unwrap_or_else(|| "unknown".to_string());
 
-    let backtrace = if std::env::var("RUST_BACKTRACE").is_ok() {
-        format!("{}", std::backtrace::Backtrace::capture())
+    // Always capture backtrace — force_capture gives useful output even without RUST_BACKTRACE.
+    let backtrace = std::backtrace::Backtrace::force_capture();
+    let bt_str = format!("{}", backtrace);
+    let backtrace_text = if bt_str.contains("disabled") || bt_str.trim().is_empty() {
+        "Backtrace unavailable (build without debuginfo)".to_string()
     } else {
-        "Set RUST_BACKTRACE=1 for full backtrace".to_string()
+        bt_str
     };
+
+    let thread = std::thread::current();
+    let thread_name = thread.name().unwrap_or("<unnamed>");
 
     let content = format!(
         "=== Qwem Studio Linux Crash Report ===\n\
-         Time: {}\nVersion: {}\nPlatform: {} {}\n\n\
+         Time: {}\nVersion: {}\nPlatform: {} {}\nThread: {}\n\n\
          Panic: {}\nLocation: {}\n\nBacktrace:\n{}\n",
         timestamp, env!("CARGO_PKG_VERSION"),
-        std::env::consts::OS, std::env::consts::ARCH,
-        message, location, backtrace
+        std::env::consts::OS, std::env::consts::ARCH, thread_name,
+        message, location, backtrace_text
     );
 
-    let _ = std::fs::write(&log_file, content);
-    log::error!("[Crash] Logged to: {}", log_file.display());
+    // Best-effort write + also log to stderr so coredumpctl/journald captures it.
+    if let Err(e) = std::fs::write(&log_file, &content) {
+        eprintln!("[Crash] Failed to write log {}: {}", log_file.display(), e);
+    }
+    eprintln!("{}", content);
+    log::error!("[Crash] Panic at {}: {} — logged to {}", location, message, log_file.display());
+    log::error!("[Crash] Backtrace:\n{}", backtrace_text);
 }
 
 fn get_crash_log_dir() -> PathBuf {
