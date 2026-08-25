@@ -1,7 +1,7 @@
 # Qwen Studio Linux
 
 <div align="center">
-  <img src="icons/icon.ico" alt="Logo">
+  <img src="icons/icon.png" alt="Logo">
 </div>
 
 **Qwen Studio Linux** is a native desktop wrapper for [Qwen Chat](https://chat.qwen.ai) on Linux, built with [Tauri v2](https://v2.tauri.app/) and WebKitGTK. No Electron, no Node.js in the main process — just a lightweight WebView with native system integrations.
@@ -322,7 +322,7 @@ Distributed under the **MIT** license. See `Cargo.toml`.
 # Qwen Studio Linux — Português
 
 <div align="center">
-  <img src="icons/icon.ico" alt="Logo">
+  <img src="icons/icon.png" alt="Logo">
 </div>
 
 **Qwen Studio Linux** é um wrapper desktop nativo do [Qwen Chat](https://chat.qwen.ai) para Linux, construído com [Tauri v2](https://v2.tauri.app/) e WebKitGTK. Sem Electron, sem Node.js no processo principal — apenas um WebView leve com recursos nativos do sistema.

@@ -104,4 +104,6 @@ pub struct UpdateInfo {
     pub available: bool,
     pub latest_version: String,
     pub release_notes: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub download_url: Option<String>,
 }

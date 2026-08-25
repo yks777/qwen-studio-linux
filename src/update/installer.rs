@@ -1,3 +1,4 @@
+use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -70,6 +71,8 @@ pub async fn install_update(file_path: PathBuf) -> Result<String, String> {
             let backup = exe.with_extension("old");
             std::fs::rename(&exe, &backup).map_err(|e| e.to_string())?;
             std::fs::copy(&file_path, &exe).map_err(|e| e.to_string())?;
+            std::fs::set_permissions(&exe, std::fs::Permissions::from_mode(0o755))
+                .map_err(|e| e.to_string())?;
             Ok("AppImage updated. Please restart.".into())
         }
         BundleType::Unknown => {

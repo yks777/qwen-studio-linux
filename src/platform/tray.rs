@@ -50,7 +50,7 @@ pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
         ],
     )?;
 
-    let icon_bytes = include_bytes!("../../icons/32x32.png");
+    let icon_bytes = include_bytes!("../../icons/icon.png");
     let img = image::load_from_memory(icon_bytes)
         .unwrap_or_else(|e| {
             log::error!("[Tray] failed to load icon: {}", e);

@@ -20,7 +20,7 @@ pub fn compare_versions(current: &str, latest: &str) -> i32 {
     0
 }
 
-pub async fn fetch_latest_version() -> Result<(String, String), String> {
+pub async fn fetch_latest_version() -> Result<(String, String, Option<String>), String> {
     let url = "https://api.github.com/repos/NicolasToledoo/qwen-studio-linux/releases/latest";
     let client = reqwest::Client::new();
     let resp = client.get(url)
@@ -42,5 +42,23 @@ pub async fn fetch_latest_version() -> Result<(String, String), String> {
         .unwrap_or("")
         .to_string();
 
-    Ok((tag, notes))
+    let download_url = json.get("assets")
+        .and_then(|a| a.as_array())
+        .and_then(|assets| {
+            assets.iter()
+                .filter_map(|a| a.get("name").and_then(|n| n.as_str())
+                    .zip(a.get("browser_download_url").and_then(|u| u.as_str())))
+                .find(|(name, _)| {
+                    let n = name.to_lowercase();
+                    // Prefer the x86_64/amd64 AppImage when multiple arch assets exist.
+                    n.ends_with(".appimage") && (n.contains("x86_64") || n.contains("amd64") || !n.contains("arm"))
+                })
+                .or_else(|| assets.iter()
+                    .filter_map(|a| a.get("name").and_then(|n| n.as_str())
+                        .zip(a.get("browser_download_url").and_then(|u| u.as_str())))
+                    .find(|(name, _)| name.to_lowercase().ends_with(".appimage")))
+                .map(|(_, url)| url.to_string())
+        });
+
+    Ok((tag, notes, download_url))
 }

@@ -48,6 +48,7 @@ commands.allow = [
   "close_window",
   "webview_loaded",
   "get_update_info",
+  "check_for_updates",
   "install_update_with_progress",
   "restart_app",
   "create_new_window",

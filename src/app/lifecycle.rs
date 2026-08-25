@@ -25,19 +25,23 @@ pub fn initialize(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     crate::platform::menu::setup(app.handle())?;
     setup_single_instance(app.handle());
 
-    let handle = app.handle().clone();
-    tauri::async_runtime::spawn(async move {
-        tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
-        let _ = crate::update::commands::check_for_updates(handle, false).await;
-    });
+    let check_updates_enabled = crate::config::store::load().general.check_updates;
 
-    let handle = app.handle().clone();
-    tauri::async_runtime::spawn(async move {
-        loop {
-            tokio::time::sleep(tokio::time::Duration::from_secs(4 * 60 * 60)).await;
-            let _ = crate::update::commands::check_for_updates(handle.clone(), false).await;
-        }
-    });
+    if check_updates_enabled {
+        let handle = app.handle().clone();
+        tauri::async_runtime::spawn(async move {
+            tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
+            let _ = crate::update::commands::check_for_updates(handle, false).await;
+        });
+
+        let handle = app.handle().clone();
+        tauri::async_runtime::spawn(async move {
+            loop {
+                tokio::time::sleep(tokio::time::Duration::from_secs(4 * 60 * 60)).await;
+                let _ = crate::update::commands::check_for_updates(handle.clone(), false).await;
+            }
+        });
+    }
 
     tauri::async_runtime::spawn(async move {
         check_system_prerequisites();
