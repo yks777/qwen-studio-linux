@@ -2,16 +2,20 @@
    CSS: Variáveis, Reset e Estilos Base
    ========================================= */
 :root {
-    --bg: #0f1115;
-    --surface: #181b22;
-    --surface-hover: #21252e;
-    --border: #2b303b;
-    --text: #e6e8ec;
-    --text-muted: #9aa3b2;
-    --accent: #6d4aff;
-    --accent-hover: #5a3ae0;
-    --danger: #e5484d;
-    --danger-hover: #c93d42;
+    --bg: #1E1E1E;
+    --surface: #181818;
+    --surface-hover: #262626;
+    --input-bg: #2E2E2E;
+    --border: #444444;
+    --text: #FFFFFF;
+    --text-muted: #8C8C8C;
+    --text-muted-2: #9E9E9E;
+    --btn-bg: #FFFFFF;
+    --btn-bg-hover: #E6E6E6;
+    --btn-text: #1E1E1E;
+    --ring: #444444;
+    --avatar-from: #3A3A3A;
+    --avatar-to: #5A5A5A;
     --radius: 8px;
     --transition: 150ms ease;
 }
@@ -67,7 +71,7 @@ body {
 
 .input {
     flex: 1;
-    background: var(--bg);
+    background: var(--input-bg);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     color: var(--text);
@@ -78,8 +82,8 @@ body {
 
 .input:focus {
     outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(109, 74, 255, 0.25);
+    border-color: var(--ring);
+    box-shadow: 0 0 0 2px rgba(68, 68, 68, 0.4);
 }
 
 /* =========================================
@@ -100,15 +104,15 @@ body {
 }
 
 .btn:focus-visible {
-    outline: 2px solid var(--accent);
+    outline: 2px solid var(--ring);
     outline-offset: 2px;
 }
 
 .btn-primary {
-    background: var(--accent);
-    color: #fff;
+    background: var(--btn-bg);
+    color: var(--btn-text);
 }
-.btn-primary:hover { background: var(--accent-hover); }
+.btn-primary:hover { background: var(--btn-bg-hover); }
 
 .btn-ghost {
     background: transparent;
@@ -126,9 +130,9 @@ body {
     border-color: var(--border);
 }
 .btn-danger:hover {
-    background: rgba(229, 72, 77, 0.1);
-    color: var(--danger);
-    border-color: var(--danger);
+    background: rgba(229, 72, 77, 0.12);
+    color: #e5484d;
+    border-color: #e5484d;
 }
 
 .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
@@ -164,7 +168,7 @@ body {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent), #9b7aff);
+    background: linear-gradient(135deg, var(--avatar-from), var(--avatar-to));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -195,8 +199,8 @@ body {
 }
 
 .input-inline {
-    background: var(--bg);
-    border: 1px solid var(--accent);
+    background: var(--input-bg);
+    border: 1px solid var(--ring);
     border-radius: 4px;
     color: var(--text);
     padding: 4px 8px;
@@ -204,7 +208,11 @@ body {
     width: 100%;
     max-width: 200px;
 }
-.input-inline:focus { outline: none; box-shadow: 0 0 0 2px rgba(109, 74, 255, 0.3); }
+.input-inline:focus {
+    outline: none;
+    border-color: var(--ring);
+    box-shadow: 0 0 0 2px rgba(68, 68, 68, 0.4);
+}
 
 /* =========================================
    CSS: Estado Vazio e Animações
@@ -225,6 +233,11 @@ body {
     height: 48px;
     margin-bottom: 16px;
     opacity: 0.5;
+}
+
+.empty-hint {
+    font-size: 0.875rem;
+    margin-top: 4px;
 }
 
 @keyframes fadeIn {
