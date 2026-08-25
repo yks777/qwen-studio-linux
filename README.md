@@ -1,6 +1,11 @@
 # Qwen Studio Linux
 
 <div align="center">
+  <a href="#qwen-studio-linux"><img src="https://img.shields.io/badge/🇺🇲-English-blue?style=for-the-badge" alt="English"></a>
+  <a href="#qwen-studio-linux--português"><img src="https://img.shields.io/badge/🇧🇷-Português-green?style=for-the-badge" alt="Português"></a>
+</div>
+
+<div align="center">
   <img src="icons/icon.png" alt="Logo" width="150" height="150">
 </div>
 
