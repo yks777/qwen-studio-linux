@@ -65,8 +65,8 @@ pub fn open_profile_picker(app: &AppHandle) -> Result<(), Box<dyn std::error::Er
             WebviewUrl::App("profile-picker/index.html".into()),
         )
         .title("Qwen Studio — Perfis")
-        .inner_size(560.0, 480.0)
-        .min_inner_size(420.0, 360.0)
+        .inner_size(720.0, 600.0)
+        .min_inner_size(560.0, 480.0)
         .center()
         .resizable(true)
         .decorations(true)

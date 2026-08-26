@@ -51,6 +51,7 @@ const createIconPicker = document.getElementById('create-icon-picker');
 const createCancel = document.getElementById('create-cancel');
 const searchInput = document.getElementById('search-input');
 const categoryTabs = document.getElementById('category-tabs');
+const categoryToggleBtn = document.getElementById('category-toggle-btn');
 const editForm = document.getElementById('edit-form');
 const editId = document.getElementById('edit-id');
 const editName = document.getElementById('edit-name');
@@ -64,6 +65,7 @@ let allCategories = [];
 let activeCategory = null;
 let selectedCreateIcon = null;
 let selectedEditIcon = null;
+let isCategoryPanelOpen = false;
 
 let isDragging = false;
 let dragGhost = null;
@@ -78,8 +80,35 @@ async function init() {
     renderIconPicker(editIconPicker, 'edit');
     await loadProfiles();
     setupSearch();
+    setupCategoryToggle();
     setupCategoryInput(createCategory, createCategorySuggestions, 'create');
     setupCategoryInput(editCategory, editCategorySuggestions, 'edit');
+}
+
+function setupCategoryToggle() {
+    if (!categoryToggleBtn || !categoryTabs) return;
+    categoryToggleBtn.addEventListener('click', () => {
+        isCategoryPanelOpen = !isCategoryPanelOpen;
+        updateCategoryPanel();
+    });
+}
+
+function updateCategoryPanel() {
+    if (!categoryTabs || !categoryToggleBtn) return;
+    if (isCategoryPanelOpen) {
+        categoryTabs.classList.remove('hidden');
+        categoryToggleBtn.textContent = 'Categoria ▴';
+        categoryToggleBtn.setAttribute('aria-expanded', 'true');
+    } else {
+        categoryTabs.classList.add('hidden');
+        categoryToggleBtn.textContent = 'Categoria ▾';
+        categoryToggleBtn.setAttribute('aria-expanded', 'false');
+    }
+}
+
+function closeCategoryPanel() {
+    isCategoryPanelOpen = false;
+    updateCategoryPanel();
 }
 
 async function loadProfiles() {
@@ -166,6 +195,7 @@ function createCategoryPill(label, value, icon, count, isActive) {
         activeCategory = value;
         renderCategoryTabs();
         renderFilteredProfiles();
+        closeCategoryPanel();
     });
 
     return pill;

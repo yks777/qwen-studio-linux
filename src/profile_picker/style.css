@@ -48,7 +48,7 @@ body {
 
 .app-container {
     width: 100%;
-    max-width: 600px;
+    max-width: 700px;
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -116,13 +116,27 @@ body {
 }
 
 /* =========================================
-   CSS: Abas de Categoria
+   CSS: Abas de Categoria + Filtro Categoria
    ========================================= */
+.category-filter {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.category-toggle-btn {
+    align-self: flex-start;
+}
+
 .category-tabs {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     padding: 4px 0;
+}
+
+.category-tabs.hidden {
+    display: none;
 }
 
 .category-pill {
