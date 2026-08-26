@@ -14,10 +14,62 @@
             <button id="create-btn" class="btn btn-primary" type="button">+ Criar perfil</button>
         </header>
 
+        <div class="search-container">
+            <span class="search-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+            <input id="search-input" class="search-input" type="search" placeholder="Buscar perfil..." autocomplete="off" />
+        </div>
+
+        <div id="category-tabs" class="category-tabs"></div>
+
         <form id="create-form">
-            <input id="create-input" class="input" type="text" placeholder="Nome do perfil" required autocomplete="off" />
-            <button id="create-confirm" type="submit" class="btn btn-primary btn-sm">Adicionar</button>
-            <button id="create-cancel" type="button" class="btn btn-ghost btn-sm">Cancelar</button>
+            <div class="form-group">
+                <label class="form-label" for="create-name">Nome do perfil</label>
+                <input id="create-name" class="input" type="text" placeholder="Ex: Trabalho, Pessoal..." required autocomplete="off" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="create-category">Categoria (opcional)</label>
+                <div class="category-input-wrapper">
+                    <input id="create-category" class="category-input" type="text" placeholder="Ex: Trabalho, Pessoal..." autocomplete="off" />
+                    <div id="create-category-suggestions" class="category-suggestions"></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Ícone (opcional)</label>
+                <div id="create-icon-picker" class="icon-picker"></div>
+            </div>
+
+            <div class="btn-group">
+                <button id="create-confirm" type="submit" class="btn btn-primary btn-sm">Adicionar</button>
+                <button id="create-cancel" type="button" class="btn btn-ghost btn-sm">Cancelar</button>
+            </div>
+        </form>
+
+        <form id="edit-form">
+            <input id="edit-id" type="hidden" />
+            <div class="form-group">
+                <label class="form-label" for="edit-name">Nome do perfil</label>
+                <input id="edit-name" class="input" type="text" placeholder="Nome do perfil" required autocomplete="off" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="edit-category">Categoria (opcional)</label>
+                <div class="category-input-wrapper">
+                    <input id="edit-category" class="category-input" type="text" placeholder="Ex: Trabalho, Pessoal..." autocomplete="off" />
+                    <div id="edit-category-suggestions" class="category-suggestions"></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Ícone (opcional)</label>
+                <div id="edit-icon-picker" class="icon-picker"></div>
+            </div>
+
+            <div class="btn-group">
+                <button id="edit-confirm" type="submit" class="btn btn-primary btn-sm">Salvar</button>
+                <button id="edit-cancel" type="button" class="btn btn-ghost btn-sm">Cancelar</button>
+            </div>
         </form>
 
         <div id="empty-state">

@@ -8,4 +8,8 @@ use serde::{Deserialize, Serialize};
 pub struct Profile {
     pub id: String,
     pub name: String,
+    #[serde(default)]
+    pub category: Option<String>,
+    #[serde(default)]
+    pub icon: Option<String>,
 }

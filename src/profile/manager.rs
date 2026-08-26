@@ -80,7 +80,11 @@ fn save(profiles: &[Profile]) -> Result<(), String> {
     fs::rename(&tmp, &path).map_err(|e| e.to_string())
 }
 
-pub fn create(name: &str) -> Result<Profile, String> {
+pub fn create(
+    name: &str,
+    category: Option<&str>,
+    icon: Option<&str>,
+) -> Result<Profile, String> {
     let name = name.trim().to_string();
     if name.is_empty() {
         return Err("Profile name cannot be empty".into());
@@ -90,7 +94,12 @@ pub fn create(name: &str) -> Result<Profile, String> {
         return Err("A profile with this name already exists".into());
     }
     let id = make_unique_id(&name, &profiles);
-    let profile = Profile { id, name };
+    let profile = Profile {
+        id,
+        name,
+        category: category.map(|s| s.trim().to_string()).filter(|s| !s.is_empty()),
+        icon: icon.map(|s| s.trim().to_string()).filter(|s| !s.is_empty()),
+    };
     profiles.push(profile.clone());
     save(&profiles)?;
     Ok(profile)
@@ -125,6 +134,56 @@ pub fn delete(id: &str) -> Result<(), String> {
     let session = session_file(id);
     let _ = fs::remove_file(&session);
     Ok(())
+}
+
+pub fn list_categories() -> Vec<String> {
+    let profiles = load();
+    let mut categories: Vec<String> = profiles
+        .iter()
+        .filter_map(|p| p.category.clone())
+        .collect::<std::collections::HashSet<_>>()
+        .into_iter()
+        .collect();
+    categories.sort();
+    categories
+}
+
+pub fn update_profile(
+    id: &str,
+    name: Option<&str>,
+    category: Option<&str>,
+    icon: Option<&str>,
+) -> Result<Profile, String> {
+    let mut profiles = load();
+
+    if let Some(n) = name {
+        let n = n.trim().to_string();
+        if n.is_empty() {
+            return Err("Profile name cannot be empty".into());
+        }
+        if profiles.iter().any(|p| p.id != id && p.name.eq_ignore_ascii_case(&n)) {
+            return Err("A profile with this name already exists".into());
+        }
+    }
+
+    let entry = profiles
+        .iter_mut()
+        .find(|p| p.id == id)
+        .ok_or("Profile not found")?;
+
+    if let Some(n) = name {
+        entry.name = n.trim().to_string();
+    }
+    if category.is_some() {
+        entry.category = category.map(|s| s.trim().to_string()).filter(|s| !s.is_empty());
+    }
+    if icon.is_some() {
+        entry.icon = icon.map(|s| s.trim().to_string()).filter(|s| !s.is_empty());
+    }
+
+    let result = entry.clone();
+    save(&profiles)?;
+    Ok(result)
 }
 
 fn make_unique_id(name: &str, existing: &[Profile]) -> String {

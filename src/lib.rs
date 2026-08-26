@@ -67,6 +67,8 @@ pub fn run() {
             profile::commands::rename_profile,
             profile::commands::delete_profile,
             profile::commands::launch_profile,
+            profile::commands::list_categories,
+            profile::commands::update_profile,
         ])
         .build(tauri::generate_context!())
         .unwrap_or_else(|e| {

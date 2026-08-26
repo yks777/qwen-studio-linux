@@ -68,5 +68,7 @@ commands.allow = [
   "create_profile",
   "rename_profile",
   "delete_profile",
-  "launch_profile"
+  "launch_profile",
+  "list_categories",
+  "update_profile"
 ]
