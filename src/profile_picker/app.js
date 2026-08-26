@@ -38,6 +38,7 @@ const ICONS = {
 const SEARCH_SVG = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`;
 const EDIT_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
 const DELETE_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>`;
+const DRAG_HANDLE_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="4" r="2"/><circle cx="16" cy="4" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="8" cy="20" r="2"/><circle cx="16" cy="20" r="2"/></svg>`;
 
 const listEl = document.getElementById('profile-list');
 const emptyEl = document.getElementById('empty-state');
@@ -63,6 +64,12 @@ let allCategories = [];
 let activeCategory = null;
 let selectedCreateIcon = null;
 let selectedEditIcon = null;
+
+let isDragging = false;
+let dragGhost = null;
+let dragSourceId = null;
+let dropIndicator = null;
+let currentDropTarget = null;
 
 document.addEventListener('DOMContentLoaded', init);
 
@@ -164,6 +171,11 @@ function createCategoryPill(label, value, icon, count, isActive) {
     return pill;
 }
 
+function isFilteredView() {
+    const query = (searchInput.value || '').trim();
+    return activeCategory !== null || query !== '';
+}
+
 function renderProfiles(profiles) {
     listEl.innerHTML = '';
 
@@ -173,10 +185,27 @@ function renderProfiles(profiles) {
     }
     emptyEl.style.display = 'none';
 
+    const filtered = isFilteredView();
+
     for (const p of profiles) {
         const card = document.createElement('div');
         card.className = 'profile-card';
         card.dataset.id = p.id;
+
+        const handle = document.createElement('div');
+        handle.className = 'drag-handle' + (filtered ? ' disabled' : '');
+        handle.innerHTML = DRAG_HANDLE_SVG;
+        if (filtered) {
+            handle.title = 'Limpe a busca/filtro para reordenar';
+        }
+
+        if (!filtered) {
+            handle.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                startDrag(p.id, card, e);
+            });
+        }
 
         const icon = document.createElement('div');
         icon.className = 'profile-icon' + (p.icon ? '' : ' no-icon');
@@ -232,8 +261,151 @@ function renderProfiles(profiles) {
         delBtn.addEventListener('click', () => deleteProfile(p.id));
 
         actions.append(enterBtn, editBtn, delBtn);
-        card.append(icon, info, actions);
+        card.append(handle, icon, info, actions);
         listEl.appendChild(card);
+    }
+}
+
+function startDrag(profileId, sourceCard, e) {
+    isDragging = true;
+    dragSourceId = profileId;
+
+    dragGhost = sourceCard.cloneNode(true);
+    dragGhost.className = 'profile-card drag-ghost';
+    dragGhost.style.width = sourceCard.offsetWidth + 'px';
+    document.body.appendChild(dragGhost);
+    moveGhost(e);
+
+    dropIndicator = document.createElement('div');
+    dropIndicator.className = 'drop-indicator';
+    dropIndicator.style.display = 'none';
+    listEl.appendChild(dropIndicator);
+
+    sourceCard.classList.add('dragging');
+    document.body.style.userSelect = 'none';
+
+    document.addEventListener('mousemove', onDragMove);
+    document.addEventListener('mouseup', onDragEnd);
+}
+
+function moveGhost(e) {
+    if (!dragGhost) return;
+    dragGhost.style.left = (e.clientX - 50) + 'px';
+    dragGhost.style.top = (e.clientY - 20) + 'px';
+}
+
+function onDragMove(e) {
+    if (!isDragging) return;
+    moveGhost(e);
+
+    const cards = [...listEl.querySelectorAll('.profile-card:not(.drag-ghost):not(.dragging)')];
+    if (cards.length === 0) return;
+    const listRect = listEl.getBoundingClientRect();
+
+    const firstRect = cards[0].getBoundingClientRect();
+    const lastRect = cards[cards.length - 1].getBoundingClientRect();
+
+    // Antes do primeiro card
+    if (e.clientY < firstRect.top) {
+        currentDropTarget = { id: cards[0].dataset.id, position: 'before' };
+        dropIndicator.style.display = 'block';
+        dropIndicator.style.top = (firstRect.top - listRect.top - 1) + 'px';
+        dropIndicator.style.left = '0';
+        dropIndicator.style.right = '0';
+        return;
+    }
+
+    // Depois do último card
+    if (e.clientY > lastRect.bottom) {
+        currentDropTarget = { id: cards[cards.length - 1].dataset.id, position: 'after' };
+        dropIndicator.style.display = 'block';
+        dropIndicator.style.top = (lastRect.bottom - listRect.top - 1) + 'px';
+        dropIndicator.style.left = '0';
+        dropIndicator.style.right = '0';
+        return;
+    }
+
+    for (let i = 0; i < cards.length; i++) {
+        const card = cards[i];
+        const rect = card.getBoundingClientRect();
+
+        // Dentro do card: decide pela metade
+        if (e.clientY >= rect.top && e.clientY <= rect.bottom) {
+            const midY = rect.top + rect.height / 2;
+            const position = e.clientY < midY ? 'before' : 'after';
+            currentDropTarget = { id: card.dataset.id, position };
+            dropIndicator.style.display = 'block';
+            if (position === 'before') {
+                dropIndicator.style.top = (rect.top - listRect.top - 1) + 'px';
+            } else {
+                dropIndicator.style.top = (rect.bottom - listRect.top - 1) + 'px';
+            }
+            dropIndicator.style.left = '0';
+            dropIndicator.style.right = '0';
+            return;
+        }
+
+        // No gap entre este card e o próximo
+        if (i < cards.length - 1) {
+            const nextRect = cards[i + 1].getBoundingClientRect();
+            if (e.clientY > rect.bottom && e.clientY < nextRect.top) {
+                // Gap: inserir após o atual (equivale a antes do próximo)
+                currentDropTarget = { id: card.dataset.id, position: 'after' };
+                dropIndicator.style.display = 'block';
+                dropIndicator.style.top = (rect.bottom - listRect.top - 1) + 'px';
+                dropIndicator.style.left = '0';
+                dropIndicator.style.right = '0';
+                return;
+            }
+        }
+    }
+
+    dropIndicator.style.display = 'none';
+    currentDropTarget = null;
+}
+
+function onDragEnd() {
+    document.removeEventListener('mousemove', onDragMove);
+    document.removeEventListener('mouseup', onDragEnd);
+
+    isDragging = false;
+    document.body.style.userSelect = '';
+
+    listEl.querySelectorAll('.profile-card.dragging').forEach(el => {
+        el.classList.remove('dragging');
+    });
+
+    if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+    if (dropIndicator) { dropIndicator.remove(); dropIndicator = null; }
+
+    if (currentDropTarget && dragSourceId && currentDropTarget.id !== dragSourceId) {
+        applyReorder(dragSourceId, currentDropTarget.id, currentDropTarget.position);
+    }
+
+    dragSourceId = null;
+    currentDropTarget = null;
+}
+
+async function applyReorder(draggedId, targetId, position) {
+    const fromIdx = allProfiles.findIndex(p => p.id === draggedId);
+    let toIdx = allProfiles.findIndex(p => p.id === targetId);
+    if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return;
+
+    const [moved] = allProfiles.splice(fromIdx, 1);
+
+    toIdx = allProfiles.findIndex(p => p.id === targetId);
+    if (position === 'after') toIdx += 1;
+
+    allProfiles.splice(toIdx, 0, moved);
+    renderFilteredProfiles();
+
+    const orderedIds = allProfiles.map(p => p.id);
+    try {
+        await invoke('reorder_profiles', { orderedIds });
+    } catch (err) {
+        console.error('Erro ao reordenar perfis:', err);
+        alert('Falha ao reordenar: ' + err);
+        await loadProfiles();
     }
 }
 

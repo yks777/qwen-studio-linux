@@ -67,3 +67,12 @@ pub fn update_profile(
     let _ = app.emit("profiles-updated", ());
     Ok(profile)
 }
+
+#[tauri::command]
+pub fn reorder_profiles(app: AppHandle, ordered_ids: Vec<String>) -> Result<(), String> {
+    let result = manager::reorder(&ordered_ids);
+    if result.is_ok() {
+        let _ = app.emit("profiles-updated", ());
+    }
+    result
+}

@@ -186,6 +186,24 @@ pub fn update_profile(
     Ok(result)
 }
 
+pub fn reorder(ordered_ids: &[String]) -> Result<(), String> {
+    let mut profiles = load();
+
+    for id in ordered_ids {
+        if !profiles.iter().any(|p| p.id == *id) {
+            return Err(format!("Profile not found: {}", id));
+        }
+    }
+
+    if ordered_ids.len() != profiles.len() {
+        return Err("Invalid reorder: length mismatch".into());
+    }
+
+    profiles.sort_by_key(|p| ordered_ids.iter().position(|id| id == &p.id));
+
+    save(&profiles)
+}
+
 fn make_unique_id(name: &str, existing: &[Profile]) -> String {
     let base: String = name
         .to_lowercase()

@@ -69,6 +69,7 @@ pub fn run() {
             profile::commands::launch_profile,
             profile::commands::list_categories,
             profile::commands::update_profile,
+            profile::commands::reorder_profiles,
         ])
         .build(tauri::generate_context!())
         .unwrap_or_else(|e| {

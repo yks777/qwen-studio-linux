@@ -447,6 +447,7 @@ body {
    CSS: Lista de Perfis e Cards
    ========================================= */
 #profile-list {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -611,3 +612,63 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* =========================================
+   CSS: Drag and Drop
+   ========================================= */
+.drag-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    color: var(--text-muted);
+    cursor: grab;
+    opacity: 0.3;
+    transition: opacity var(--transition), color var(--transition);
+    flex-shrink: 0;
+    user-select: none;
+}
+
+.drag-handle:hover {
+    opacity: 0.8;
+    color: var(--text);
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+.drag-handle.disabled {
+    opacity: 0.15;
+    cursor: not-allowed;
+}
+
+.drag-handle.disabled:active {
+    cursor: not-allowed;
+}
+
+.profile-card.dragging {
+    opacity: 0.3;
+}
+
+.drag-ghost {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.9;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    border-color: var(--accent) !important;
+    transform: rotate(1.5deg);
+    transition: none;
+}
+
+.drop-indicator {
+    position: absolute;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 1px;
+    z-index: 10;
+    pointer-events: none;
+    box-shadow: 0 0 8px rgba(91, 155, 213, 0.5);
+}
