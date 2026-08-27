@@ -18,16 +18,17 @@
 
 ## Features
 
-- 💬 **Native chat** — opens `chat.qwen.ai` in a WebKitGTK WebView optimized for desktop.
-- 👥 **Multiple profiles** — separate, isolated sessions (cookies, `localStorage` and data directory) for different accounts, managed via a profile picker and the "Perfils" menu.
-- 🔐 **OAuth login via deep link** — authenticate in your browser and return automatically via the `qwen://` protocol.
-- 🧩 **Model Context Protocol (MCP)** — MCP servers (qwen-core, Filesystem, Sequential-Thinking) managed through a Node.js bridge, with stdio and HTTP/SSE transports.
-- 🖥️ **System tray + HeaderBar menu** — notification-area icon and a native GTK menu (Linux-specific).
-- 🔄 **Auto-update** — integrated update checking and installation (with an "Updates" tab injected into Settings).
-- 🪟 **Multiple windows** — open several independent chat windows at once.
-- 🎨 **Native integrations** — clipboard (including images), native file/confirm dialogs, theme switching, drag-and-drop of files, image paste, external-link handling, desktop notifications, and conversation export.
-- 🔍 **Zoom & DevTools** — zoom controls (`Ctrl +`/`-`/`0` and `Ctrl + scroll`) and a toggleable WebView DevTools.
-- 🛡️ **Crash diagnostics** — panics are logged to disk for easier bug reporting.
+- **Native chat** — opens `chat.qwen.ai` in a WebKitGTK WebView optimized for desktop.
+- **Multiple profiles** — separate, isolated sessions (cookies, `localStorage` and data directory) for different accounts, managed via a profile picker and the "Perfils" menu. Group them with **categories**, assign **icons**, **search/filter** and **reorder** them by drag-and-drop.
+- **OAuth login via deep link** — authenticate in your browser and return automatically via the `qwen://` protocol.
+- **Model Context Protocol (MCP)** — MCP servers (qwen-core, Filesystem, Sequential-Thinking) managed through a Node.js bridge, with stdio and HTTP/SSE transports.
+- **System tray + HeaderBar menu** — notification-area icon and a native GTK menu (Linux-specific).
+- **Auto-update** — integrated update checking and installation (with an "Updates" tab injected into Settings).
+- **Multiple windows** — open several independent chat windows at once.
+- **Native integrations** — clipboard (including images), native file/confirm dialogs, theme switching, drag-and-drop of files, image paste, external-link handling, desktop notifications, and conversation export.
+- **Zoom & DevTools** — zoom controls (`Ctrl +`/`-`/`0` and `Ctrl + scroll`) and a toggleable WebView DevTools.
+- **Paste Image** — an explicit `Edit ▸ Paste Image` entry (`Ctrl+Shift+V`) injects the clipboard image when the site's native paste doesn't pick it up (WebKitGTK image-paste limitation).
+- **Crash diagnostics** — panics are logged to disk for easier bug reporting.
 
 ---
 
@@ -135,6 +136,10 @@ Qwen Studio Linux supports multiple independent accounts through **profiles**.
 
 - On launch, a **profile picker** window appears where you can **create**, **rename**, **delete** and **launch** profiles.
 - Each profile stores its own login (cookies), `localStorage` and WebView data in an isolated directory: `~/.config/qwen-studio-linux/profiles/<id>/`.
+- **Categories** — tag a profile with a category; the picker shows filter tabs ("All", "Uncategorized" and one pill per category) to group and filter your profiles.
+- **Icons** — choose one of 8 built-in icons; it is shown on the profile card and its category tab.
+- **Search** — filter profiles by name using the search box in the picker.
+- **Reorder** — drag a profile card by its handle to reorder it; reordering is disabled while a search query or category filter is active.
 - Multiple profiles can run **simultaneously**, each in its own window.
 - The **Perfils** submenu in the app menu lets you open the picker, switch between profiles, and create new ones.
 
@@ -192,7 +197,7 @@ The app provides a native GTK HeaderBar menu (Linux) with the following structur
 | Menu | Items |
 |------|-------|
 | File | Minimize, Maximize, Quit |
-| Edit | Undo, Redo, Cut, Copy, Paste, Select All |
+| Edit | Undo, Redo, Cut, Copy, Paste, **Paste Image**, Select All |
 | View | Reload, Toggle DevTools, Zoom In, Zoom Out, Reset Zoom |
 | Window | New Window, Fullscreen |
 | Perfils | Open picker, open/launch a profile, create profile |
@@ -209,13 +214,14 @@ Keyboard shortcuts:
 | `Ctrl + =` / `Ctrl + +` | Zoom in |
 | `Ctrl + -` | Zoom out |
 | `Ctrl + 0` | Reset zoom |
+| `Ctrl + Shift + V` | Paste Image (inject clipboard image into the composer) |
 | `Ctrl + scroll wheel` | Zoom in / out (range 0.5×–2.0×) |
 
 ---
 
 ## Native Integrations
 
-- **Clipboard** — copy/paste text; paste images directly from the clipboard into the chat.
+- **Clipboard** — copy/paste text; paste images directly from the clipboard into the chat. If the native paste doesn't pick up an image, use **Edit ▸ Paste Image** (`Ctrl+Shift+V`) to inject it manually.
 - **Drag & drop** — drop files from your file manager into the WebView to send them.
 - **External links** — links opened via `window.open` are routed: authentication URLs stay inside the WebView, while other `http(s)` links open in your default browser.
 - **Desktop notifications** — the app shows a native notification (via libnotify) when an update is available.
@@ -339,16 +345,17 @@ Distributed under the **MIT** license. See `Cargo.toml`.
 
 ## Funcionalidades
 
-- 💬 **Chat nativo** — abre o `chat.qwen.ai` em um WebView WebKitGTK otimizado para desktop.
-- 👥 **Múltiplos perfis** — sessões separadas e isoladas (cookies, `localStorage` e diretório de dados) para contas diferentes, gerenciadas por um seletor de perfis e pelo menu "Perfils".
-- 🔐 **Login OAuth via deep link** — autenticação pelo navegador e retorno automático via protocolo `qwen://`.
-- 🧩 **Model Context Protocol (MCP)** — servidores MCP (qwen-core, Filesystem, Sequential-Thinking) gerenciados por uma ponte Node.js, com transportes stdio e HTTP/SSE.
-- 🖥️ **System tray + menu HeaderBar** — integração com a área de notificação e barra de título do GTK (específico do Linux).
-- 🔄 **Auto-update** — verificação e instalação de atualizações integradas (com aba "Updates" injetada nas Configurações).
-- 🪟 **Múltiplas janelas** — abra várias janelas de chat independentes ao mesmo tempo.
-- 🎨 **Recursos nativos** — clipboard (incluindo imagens), diálogos nativos de arquivo/confirmação, troca de tema, arrastar-e-soltar de arquivos, colar imagens, tratamento de links externos, notificações desktop e exportação de conversas.
-- 🔍 **Zoom & DevTools** — controles de zoom (`Ctrl +`/`-`/`0` e `Ctrl + scroll`) e um DevTools do WebView alternável.
-- 🛡️ **Diagnóstico de falhas** — panics são registrados em disco para facilitar o reporte de bugs.
+- **Chat nativo** — abre o `chat.qwen.ai` em um WebView WebKitGTK otimizado para desktop.
+- **Múltiplos perfis** — sessões separadas e isoladas (cookies, `localStorage` e diretório de dados) para contas diferentes, gerenciadas por um seletor de perfis e pelo menu "Perfils". Agrupe-os em **categorias**, atribua **ícones**, **pesquise/filtre** e **reordene** com arrastar-e-soltar.
+- **Login OAuth via deep link** — autenticação pelo navegador e retorno automático via protocolo `qwen://`.
+- **Model Context Protocol (MCP)** — servidores MCP (qwen-core, Filesystem, Sequential-Thinking) gerenciados por uma ponte Node.js, com transportes stdio e HTTP/SSE.
+- **System tray + menu HeaderBar** — integração com a área de notificação e barra de título do GTK (específico do Linux).
+- **Auto-update** — verificação e instalação de atualizações integradas (com aba "Updates" injetada nas Configurações).
+- **Múltiplas janelas** — abra várias janelas de chat independentes ao mesmo tempo.
+- **Recursos nativos** — clipboard (incluindo imagens), diálogos nativos de arquivo/confirmação, troca de tema, arrastar-e-soltar de arquivos, colar imagens, tratamento de links externos, notificações desktop e exportação de conversas.
+- **Zoom & DevTools** — controles de zoom (`Ctrl +`/`-`/`0` e `Ctrl + scroll`) e um DevTools do WebView alternável.
+- **Colar Imagem** — um item explícito `Editar ▸ Colar Imagem` (`Ctrl+Shift+V`) injeta a imagem da área de transferência quando a colagem nativa do site não a captura (limitação de colagem de imagem do WebKitGTK).
+- **Diagnóstico de falhas** — panics são registrados em disco para facilitar o reporte de bugs.
 
 ---
 
@@ -456,6 +463,10 @@ O Qwen Studio Linux suporta múltiplas contas independentes através de **perfis
 
 - Na inicialização, uma janela de **seletor de perfis** aparece, onde você pode **criar**, **renomear**, **excluir** e **abrir** perfis.
 - Cada perfil armazena seu próprio login (cookies), `localStorage` e dados do WebView em um diretório isolado: `~/.config/qwen-studio-linux/profiles/<id>/`.
+- **Categorias** — marque um perfil com uma categoria; o seletor mostra abas de filtro ("Todos", "Sem categoria" e uma pílula por categoria) para agrupar e filtrar seus perfis.
+- **Ícones** — escolha um dos 8 ícones embutidos; ele é exibido no cartão do perfil e na aba da sua categoria.
+- **Pesquisa** — filtre perfis por nome usando a caixa de busca no seletor.
+- **Reordenar** — arraste o cartão de um perfil pela sua alça para reordená-lo; a reordenação é desativada enquanto há uma busca ou filtro de categoria ativo.
 - Vários perfis podem rodar **simultaneamente**, cada um em sua própria janela.
 - O submenu **Perfils** no menu do aplicativo permite abrir o seletor, alternar entre perfis e criar novos.
 
@@ -513,7 +524,7 @@ O app oferece um menu nativo GTK HeaderBar (Linux) com a seguinte estrutura:
 | Menu | Itens |
 |------|-------|
 | Arquivo | Minimizar, Maximizar, Sair |
-| Editar | Desfazer, Refazer, Recortar, Copiar, Colar, Selecionar tudo |
+| Editar | Desfazer, Refazer, Recortar, Copiar, Colar, **Colar Imagem**, Selecionar tudo |
 | Ver | Recarregar, Alternar DevTools, Aumentar zoom, Diminuir zoom, Restaurar zoom |
 | Janela | Nova janela, Tela cheia |
 | Perfils | Abrir painel, abrir/iniciar um perfil, criar perfil |
@@ -530,13 +541,14 @@ Atalhos de teclado:
 | `Ctrl + =` / `Ctrl + +` | Aumentar zoom |
 | `Ctrl + -` | Diminuir zoom |
 | `Ctrl + 0` | Restaurar zoom |
+| `Ctrl + Shift + V` | Colar Imagem (injeta a imagem da área de transferência no composer) |
 | `Ctrl + scroll wheel` | Aumentar/diminuir zoom (intervalo 0,5×–2,0×) |
 
 ---
 
 ## Integrações nativas
 
-- **Clipboard** — copie/cole texto; cole imagens diretamente da área de transferência no chat.
+- **Clipboard** — copie/cole texto; cole imagens diretamente da área de transferência no chat. Se a colagem nativa não capturar a imagem, use **Editar ▸ Colar Imagem** (`Ctrl+Shift+V`) para injetá-la manualmente.
 - **Arrastar e soltar** — solte arquivos do seu gerenciador de arquivos no WebView para enviá-los.
 - **Links externos** — links abertos via `window.open` são roteados: URLs de autenticação ficam dentro do WebView, enquanto outros links `http(s)` abrem no navegador padrão.
 - **Notificações desktop** — o app exibe uma notificação nativa (via libnotify) quando há atualização disponível.
