@@ -122,6 +122,7 @@ pub fn open_profile_window(app: &AppHandle, profile: &Profile) -> Result<(), Box
         .user_agent(USER_AGENT)
         .data_directory(data_dir)
         .initialization_script(&init_script)
+        .enable_clipboard_access()
         .on_navigation(|url| crate::webview::navigation::is_allowed(url.as_ref()))
         .on_page_load(move |w, payload| {
             if payload.event() == PageLoadEvent::Finished
@@ -136,6 +137,14 @@ pub fn open_profile_window(app: &AppHandle, profile: &Profile) -> Result<(), Box
             }
         })
         .build()?;
+
+    // Em WebKitGTK ≥2.50.2 o paste nativo (texto+imagem) já funciona via
+    // PredefinedMenuItem::paste/cut/copy. Esconder a menubar com hide_menu()
+    // desregistra o GtkAccelGroup em algumas versões Wry/GTK e faz Ctrl+C/V
+    // não chegar ao WebView — por isso mantemos a barra visível no Linux.
+    // O fallback explícito para imagem continua em Shift+Ctrl+V.
+
+    crate::app::window_utils::attach_file_drop_handler(&_window);
 
     if let Some(state) = app.try_state::<AppState>() {
         let map = state.window_profiles.clone();

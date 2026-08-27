@@ -52,7 +52,8 @@ commands.allow = [
   "install_update_with_progress",
   "restart_app",
   "create_new_window",
-  "read_clipboard_image"
+  "read_clipboard_image",
+  "save_clipboard_image_to_file"
 ]
 
 [[permission]]

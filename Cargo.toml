@@ -37,7 +37,8 @@ dirs = "5"
 url = "2"
 open = "5"
 base64 = "0.22"
-image = "0.25"
+image = { version = "0.25", features = ["png"] }
+arboard = { version = "3", features = ["wayland-data-control"] }
 notify-rust = "4"
 gtk = { version = "0.18", package = "gtk" }
 glib = { version = "0.18", package = "glib" }

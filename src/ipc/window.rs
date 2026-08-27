@@ -21,15 +21,18 @@ pub async fn create_new_window(app: tauri::AppHandle) -> Result<String, String> 
         .resizable(true)
         .user_agent(USER_AGENT)
         .initialization_script(&script)
+        .enable_clipboard_access()
         .on_navigation(|url| crate::webview::navigation::is_allowed(url.as_ref()));
 
     if let Some(profile) = crate::app::window_utils::focused_profile_async(&app).await {
         builder = builder.data_directory(crate::profile::manager::data_dir_for(&profile.id));
     }
 
-    builder
+    let window = builder
         .build()
         .map_err(|e| e.to_string())?;
+
+    crate::app::window_utils::attach_file_drop_handler(&window);
 
     Ok(label)
 }

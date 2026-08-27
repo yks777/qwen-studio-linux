@@ -24,7 +24,12 @@ pub fn build_app_menu(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::
         .separator()
         .item(&PredefinedMenuItem::cut(app, None)?)
         .item(&PredefinedMenuItem::copy(app, None)?)
-        .item(&PredefinedMenuItem::paste(app, None)?)
+        .item(&MenuItemBuilder::with_id("paste", "Paste").build(app)?)
+        .item(
+            &MenuItemBuilder::with_id("paste-image", "Paste Image")
+                .accelerator("CmdOrCtrl+Shift+V")
+                .build(app)?,
+        )
         .item(&PredefinedMenuItem::select_all(app, None)?)
         .build()?;
 
@@ -195,6 +200,16 @@ pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                 tauri::async_runtime::spawn(async move {
                     let _ = crate::update::commands::check_for_updates(handle, false).await;
                 });
+            }
+            "paste" => {
+                if let Some(w) = crate::app::window_utils::active_webview_window(app) {
+                    let _ = w.eval("window.__qwenScheduleFallbackPaste && window.__qwenScheduleFallbackPaste();");
+                }
+            }
+            "paste-image" => {
+                if let Some(w) = crate::app::window_utils::active_webview_window(app) {
+                    let _ = w.eval("window.__qwenScheduleFallbackPaste && window.__qwenScheduleFallbackPaste();");
+                }
             }
             _ => {}
         }

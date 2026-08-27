@@ -77,5 +77,38 @@
         },
     };
 
+    // Best-effort Electron clipboard shim so chat.qwen.ai's own Electron-API
+    // calls resolve. `read_clipboard_image` returns base64 PNG, which we wrap in
+    // a minimal NativeImage-like object (full emulation is impossible in JS).
+    function __qwenNativeImage(b64) {
+        return {
+            toDataURL: () => 'data:image/png;base64,' + b64,
+            toPNG:     () => b64,
+            toBitmap:  () => b64,
+            isEmpty:   () => !b64,
+        };
+    }
+    window.electron.clipboard = {
+        readText:  () => invoke('plugin:clipboard-manager|read_text'),
+        writeText: (t) => invoke('plugin:clipboard-manager|write_text', { text: t }),
+        readImage: async () => __qwenNativeImage(await invoke('read_clipboard_image')),
+        writeImage: () => Promise.resolve(),
+        read: async () => {
+            try { return await navigator.clipboard.read(); }
+            catch (_) {
+                const items = [];
+                try {
+                    const t = await invoke('plugin:clipboard-manager|read_text');
+                    if (t) items.push(new ClipboardItem({ 'text/plain': new Blob([t], { type: 'text/plain' }) }));
+                } catch (_) {}
+                try {
+                    const b = await invoke('read_clipboard_image');
+                    if (b) items.push(new ClipboardItem({ 'image/png': await (await fetch('data:image/png;base64,' + b)).blob() }));
+                } catch (_) {}
+                return items;
+            }
+        },
+    };
+
     console.log('[Qwem Studio] Bridge initialized');
 })();
