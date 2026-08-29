@@ -88,6 +88,7 @@ pub async fn get_file_metas(paths: Vec<String>) -> Result<Vec<DropMeta>, String>
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 const MAX_CHUNK_SIZE: usize = 4 * 1024 * 1024;
 
 #[tauri::command]
@@ -171,6 +172,13 @@ pub async fn read_file_chunk(path: String, offset: u64, length: usize) -> Result
             // clamp is handled by read, but avoid huge allocation already checked
         }
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
+=======
+#[tauri::command]
+pub async fn read_file_chunk(path: String, offset: u64, length: usize) -> Result<Response, String> {
+    let chunk = tauri::async_runtime::spawn_blocking(move || {
+        let mut file =
+            File::open(&path).map_err(|e| format!("Falha ao abrir '{}': {}", path, e))?;
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
         file.seek(SeekFrom::Start(offset))
             .map_err(|e| format!("Falha ao seek offset {}: {}", offset, e))?;
         let mut buffer = vec![0u8; length];

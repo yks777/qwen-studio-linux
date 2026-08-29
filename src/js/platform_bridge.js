@@ -290,6 +290,7 @@
         if (dropAttempted) {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             if(window.__QWEN_DEBUG) console.log('[Qwen Studio] drop sintético (File object) disparado; tentando fallback <input>');
 =======
             console.log('[Qwen Studio] drop sintético (File object) disparado; tentando fallback <input>');
@@ -297,6 +298,9 @@
 =======
             if(window.__QWEN_DEBUG) console.log('[Qwen Studio] drop sintético (File object) disparado; tentando fallback <input>');
 >>>>>>> 0f81055 (Melhorias)
+=======
+            console.log('[Qwen Studio] drop sintético (File object) disparado; tentando fallback <input>');
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
         }
         const input = findFileInput();
         if (input) {
@@ -315,6 +319,7 @@
                 input.hidden = origHidden;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 if(window.__QWEN_DEBUG) console.log('[Qwen Studio] injected File object via <input> fallback:', file.name);
 =======
                 console.log('[Qwen Studio] injected File object via <input> fallback:', file.name);
@@ -322,6 +327,9 @@
 =======
                 if(window.__QWEN_DEBUG) console.log('[Qwen Studio] injected File object via <input> fallback:', file.name);
 >>>>>>> 0f81055 (Melhorias)
+=======
+                console.log('[Qwen Studio] injected File object via <input> fallback:', file.name);
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
                 return true;
             } catch (err) {
                 console.warn('[Qwen Studio] input injection (File object) failed', err);
@@ -341,6 +349,7 @@
 
     async function injectLargeFile({ path, name, mime, size }) {
 <<<<<<< HEAD
+<<<<<<< HEAD
         const MAX_SIZE = 100 * 1024 * 1024; // 100 MiB limite (economia RAM) — window_utils.rs também filtra
         if (size > MAX_SIZE) {
             console.warn(`[Qwen Studio] arquivo ignorado, excede 100 MiB: ${name} (${size} bytes)`);
@@ -358,6 +367,11 @@
 =======
         if(window.__QWEN_DEBUG) console.log(`[Qwen Studio] iniciando transferência binária: ${name} (${size} bytes, mime=${mime})`);
 >>>>>>> 0f81055 (Melhorias)
+=======
+        const CHUNK = 4 * 1024 * 1024; // 4 MiB
+        const parts = [];
+        console.log(`[Qwen Studio] iniciando transferência binária: ${name} (${size} bytes, mime=${mime})`);
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
         try {
             for (let off = 0; off < size; off += CHUNK) {
                 const len = Math.min(CHUNK, size - off);
@@ -391,6 +405,7 @@
             const file = new File(parts, name || 'file', { type: mime || 'application/octet-stream' });
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             if(window.__QWEN_DEBUG) console.log(`[Qwen Studio] File montado: ${file.name} ${file.size} bytes, injetando...`);
 =======
             console.log(`[Qwen Studio] File montado: ${file.name} ${file.size} bytes, injetando...`);
@@ -398,6 +413,9 @@
 =======
             if(window.__QWEN_DEBUG) console.log(`[Qwen Studio] File montado: ${file.name} ${file.size} bytes, injetando...`);
 >>>>>>> 0f81055 (Melhorias)
+=======
+            console.log(`[Qwen Studio] File montado: ${file.name} ${file.size} bytes, injetando...`);
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
             const ok = injectFileObject(file);
             if (!ok) console.warn('[Qwen Studio] injeção do File chunkado falhou:', name);
             return ok;
@@ -415,6 +433,7 @@
         if (__qwenDropping) {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             if(window.__QWEN_DEBUG) console.log('[Qwen Studio] drop enfileirado (já processando), fila:', __qwenDropQueue.length);
 =======
             console.log('[Qwen Studio] drop enfileirado (já processando), fila:', __qwenDropQueue.length);
@@ -422,12 +441,16 @@
 =======
             if(window.__QWEN_DEBUG) console.log('[Qwen Studio] drop enfileirado (já processando), fila:', __qwenDropQueue.length);
 >>>>>>> 0f81055 (Melhorias)
+=======
+            console.log('[Qwen Studio] drop enfileirado (já processando), fila:', __qwenDropQueue.length);
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
             return;
         }
         __qwenDropping = true;
         while (__qwenDropQueue.length > 0) {
             const m = __qwenDropQueue.shift();
             try {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
                 if(window.__QWEN_DEBUG) console.log('[Qwen Studio] processando drop:', m.name, m.size, 'bytes');
@@ -437,6 +460,9 @@
 =======
                 if(window.__QWEN_DEBUG) console.log('[Qwen Studio] processando drop:', m.name, m.size, 'bytes');
 >>>>>>> 0f81055 (Melhorias)
+=======
+                console.log('[Qwen Studio] processando drop:', m.name, m.size, 'bytes');
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
                 await injectLargeFile(m);
             } catch (e) {
                 console.error('[Qwen Studio] falha no drop:', m.name, e);

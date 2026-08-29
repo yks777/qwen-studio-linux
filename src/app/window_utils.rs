@@ -39,6 +39,7 @@ pub fn attach_file_drop_handler(window: &WebviewWindow) {
                 };
                 let size = meta.len();
 <<<<<<< HEAD
+<<<<<<< HEAD
                 const MAX_DROP_SIZE: u64 = 100 * 1024 * 1024; // 100 MiB limite para economia de RAM
                 if size > MAX_DROP_SIZE {
                     log::warn!(
@@ -49,6 +50,9 @@ pub fn attach_file_drop_handler(window: &WebviewWindow) {
                     continue;
                 }
                 if size > 512 * 1024 * 1024 {
+=======
+                if size > 1024 * 1024 * 1024 {
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
 =======
                 if size > 1024 * 1024 * 1024 {
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
@@ -93,6 +97,7 @@ pub fn attach_file_drop_handler(window: &WebviewWindow) {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 fn resolve_focused_label(app: &tauri::AppHandle, try_sync: bool) -> Option<String> {
@@ -111,6 +116,8 @@ fn resolve_focused_label(app: &tauri::AppHandle, try_sync: bool) -> Option<Strin
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
 =======
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
+=======
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
 /// Returns the most relevant window to act on for window-scoped commands
 /// (zoom, devtools, reload, minimize, etc.).
 ///
@@ -123,10 +130,13 @@ fn resolve_focused_label(app: &tauri::AppHandle, try_sync: bool) -> Option<Strin
 pub fn active_webview_window(app: &tauri::AppHandle) -> Option<WebviewWindow> {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     if let Some(label) = resolve_focused_label(app, true) {
         if let Some(w) = app.get_webview_window(&label) {
             return Some(w);
 =======
+=======
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
     if let Some(state) = app.try_state::<crate::app::state::AppState>() {
         if let Ok(last) = state.last_focused.try_read() {
             if let Some(label) = last.as_ref() {

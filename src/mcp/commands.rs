@@ -100,6 +100,7 @@ pub async fn mcp_client_tool_call(
             "callTool",
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             serde_json::to_value(&params).map_err(|e| e.to_string())?,
 =======
             serde_json::to_value(&params).unwrap_or_default(),
@@ -107,6 +108,9 @@ pub async fn mcp_client_tool_call(
 =======
             serde_json::to_value(&params).map_err(|e| e.to_string())?,
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
+=======
+            serde_json::to_value(&params).unwrap_or_default(),
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
         )
         .await
         .map_err(|e| e.to_string());
@@ -214,9 +218,12 @@ pub async fn mcp_client_update_config(
         merged
             .entry("qwen-core".into())
             .or_insert_with(|| qc.clone());
+<<<<<<< HEAD
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
 =======
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
+=======
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
     }
 
     let merged = crate::config::defaults::normalize_mcp(merged);

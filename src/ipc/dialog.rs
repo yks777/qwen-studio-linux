@@ -38,6 +38,7 @@ pub async fn request_file_access(
     let path = rx
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         .await
 =======
         .recv()
@@ -45,10 +46,14 @@ pub async fn request_file_access(
 =======
         .await
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
+=======
+        .recv()
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
         .map_err(|e| e.to_string())?
         .ok_or("No file selected")?;
     let mut result = serde_json::json!({ "filePath": path });
     if return_file.unwrap_or(false) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -73,6 +78,10 @@ pub async fn request_file_access(
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
 =======
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
+=======
+        result["file"] =
+            serde_json::Value::String(std::fs::read_to_string(&path).map_err(|e| e.to_string())?);
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
     }
     Ok(result)
 }

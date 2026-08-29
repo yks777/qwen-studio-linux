@@ -41,6 +41,7 @@ pub async fn fetch_latest_version() -> Result<(String, String, Option<String>), 
     let url = "https://api.github.com/repos/yks777/qwen-studio-linux/releases/latest";
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     let resp = HTTP_CLIENT
 =======
     let client = reqwest::Client::new();
@@ -49,6 +50,10 @@ pub async fn fetch_latest_version() -> Result<(String, String, Option<String>), 
 =======
     let resp = HTTP_CLIENT
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
+=======
+    let client = reqwest::Client::new();
+    let resp = client
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
         .get(url)
         .header("User-Agent", "qwen-studio-linux")
         .send()

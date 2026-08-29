@@ -204,11 +204,16 @@ pub async fn install_update_with_progress(app: AppHandle, url: String) -> Result
         std::fs::write(&file_path, &file_content).map_err(|e| e.to_string())?;
 
         super::installer::install_update(file_path).await
+<<<<<<< HEAD
 =======
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
     }
     file.flush().await.map_err(|e| e.to_string())?;
     drop(file);
+=======
+    }
+    .await;
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
 
 <<<<<<< HEAD
     INSTALLING.store(false, Ordering::SeqCst);

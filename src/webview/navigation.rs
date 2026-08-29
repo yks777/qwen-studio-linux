@@ -46,8 +46,11 @@ pub fn is_allowed(url: &str) -> bool {
 
 fn is_auth_url(url: &str) -> bool {
     AUTH_DOMAINS.iter().any(|d| url.contains(d)) || AUTH_PATHS.iter().any(|p| url.contains(p))
+<<<<<<< HEAD
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
 =======
     is_auth_url_strict(url)
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
+=======
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
 }

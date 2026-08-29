@@ -25,8 +25,13 @@ pub struct GeneralSettings {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 fn default_zoom() -> f64 {
     1.0
+=======
+fn default_true() -> bool {
+    true
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
 =======
 fn default_true() -> bool {
     true
