@@ -1,11 +1,11 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
-use tauri::{AppHandle, Emitter, Listener, Manager, WebviewUrl};
-use tauri::webview::PageLoadEvent;
 use crate::app::state::AppState;
 use crate::profile::{manager, Profile};
 use crate::webview::user_agent::USER_AGENT;
+use tauri::webview::PageLoadEvent;
+use tauri::{AppHandle, Emitter, Listener, Manager, WebviewUrl};
 
 /// Window label for a given profile's main window (e.g. `main-<id>`).
 pub fn profile_window_label(profile_id: &str) -> String {
@@ -60,18 +60,18 @@ pub fn open_profile_picker(app: &AppHandle) -> Result<(), Box<dyn std::error::Er
     }
 
     let window = tauri::WebviewWindowBuilder::new(
-            app,
-            "profile-picker",
-            WebviewUrl::App("profile-picker/index.html".into()),
-        )
-        .title("Qwen Studio — Perfis")
-        .inner_size(720.0, 600.0)
-        .min_inner_size(560.0, 480.0)
-        .center()
-        .resizable(true)
-        .decorations(true)
-        .visible(false)
-        .build()?;
+        app,
+        "profile-picker",
+        WebviewUrl::App("profile-picker/index.html".into()),
+    )
+    .title("Qwen Studio — Perfis")
+    .inner_size(720.0, 600.0)
+    .min_inner_size(560.0, 480.0)
+    .center()
+    .resizable(true)
+    .decorations(true)
+    .visible(false)
+    .build()?;
 
     // Fallback: force-show the picker if the page's JS show() never fires,
     // so it can never get stuck hidden after the WebKit cold start.
@@ -88,7 +88,10 @@ pub fn open_profile_picker(app: &AppHandle) -> Result<(), Box<dyn std::error::Er
 ///
 /// Each profile gets its own window label (`main-<id>`) and its own isolated
 /// data directory, allowing multiple profiles to run simultaneously.
-pub fn open_profile_window(app: &AppHandle, profile: &Profile) -> Result<(), Box<dyn std::error::Error>> {
+pub fn open_profile_window(
+    app: &AppHandle,
+    profile: &Profile,
+) -> Result<(), Box<dyn std::error::Error>> {
     let label = profile_window_label(&profile.id);
 
     // Focus the existing window for this profile instead of opening a duplicate.
@@ -105,38 +108,37 @@ pub fn open_profile_window(app: &AppHandle, profile: &Profile) -> Result<(), Box
     let restored = Arc::new(AtomicBool::new(false));
 
     let _window = tauri::WebviewWindowBuilder::new(
-            app, &label,
-            WebviewUrl::External(
-                manager::PROFILE_MAIN_URL
-                    .parse()
-                    .unwrap_or_else(|_| "https://chat.qwen.ai".parse().expect("hardcoded url valid")),
-            )
-        )
-        .title("Qwem Studio Linux")
-        .inner_size(1280.0, 840.0)
-        .min_inner_size(400.0, 600.0)
-        .center()
-        .resizable(true)
-        .decorations(true)
-        .accept_first_mouse(false)
-        .user_agent(USER_AGENT)
-        .data_directory(data_dir)
-        .initialization_script(&init_script)
-        .enable_clipboard_access()
-        .on_navigation(|url| crate::webview::navigation::is_allowed(url.as_ref()))
-        .on_page_load(move |w, payload| {
-            if payload.event() == PageLoadEvent::Finished
-                && !restored.swap(true, Ordering::SeqCst)
-            {
-                if let Some(session) = manager::load_session(&pid) {
-                    if !session.local_storage.is_empty() {
-                        let js = crate::profile::cookies::restore_local_storage_js(&session);
-                        let _ = w.eval(js);
-                    }
+        app,
+        &label,
+        WebviewUrl::External(
+            manager::PROFILE_MAIN_URL
+                .parse()
+                .unwrap_or_else(|_| "https://chat.qwen.ai".parse().expect("hardcoded url valid")),
+        ),
+    )
+    .title("Qwem Studio Linux")
+    .inner_size(1280.0, 840.0)
+    .min_inner_size(400.0, 600.0)
+    .center()
+    .resizable(true)
+    .decorations(true)
+    .accept_first_mouse(false)
+    .user_agent(USER_AGENT)
+    .data_directory(data_dir)
+    .initialization_script(&init_script)
+    .enable_clipboard_access()
+    .on_navigation(|url| crate::webview::navigation::is_allowed(url.as_ref()))
+    .on_page_load(move |w, payload| {
+        if payload.event() == PageLoadEvent::Finished && !restored.swap(true, Ordering::SeqCst) {
+            if let Some(session) = manager::load_session(&pid) {
+                if !session.local_storage.is_empty() {
+                    let js = crate::profile::cookies::restore_local_storage_js(&session);
+                    let _ = w.eval(js);
                 }
             }
-        })
-        .build()?;
+        }
+    })
+    .build()?;
 
     // Em WebKitGTK ≥2.50.2 o paste nativo (texto+imagem) já funciona via
     // PredefinedMenuItem::paste/cut/copy. Esconder a menubar com hide_menu()
@@ -271,7 +273,12 @@ pub fn setup_single_instance(app: &AppHandle) {
 }
 
 pub fn on_run_event(app_handle: &AppHandle, event: tauri::RunEvent) {
-    if let tauri::RunEvent::WindowEvent { label, event: win_event, .. } = event {
+    if let tauri::RunEvent::WindowEvent {
+        label,
+        event: win_event,
+        ..
+    } = event
+    {
         match win_event {
             tauri::WindowEvent::CloseRequested { .. } => {
                 if label.starts_with("main-") {
@@ -284,7 +291,12 @@ pub fn on_run_event(app_handle: &AppHandle, event: tauri::RunEvent) {
                                 guard.get(&label_clone).map(|p| p.id.clone())
                             };
                             if let Some(pid) = pid {
-                                crate::profile::cookies::capture_session(&app_h, &label_clone, &pid).await;
+                                crate::profile::cookies::capture_session(
+                                    &app_h,
+                                    &label_clone,
+                                    &pid,
+                                )
+                                .await;
                             }
                             let mut guard = state.window_profiles.write().await;
                             guard.remove(&label_clone);

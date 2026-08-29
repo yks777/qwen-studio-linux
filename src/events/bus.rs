@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
-use tokio::sync::broadcast;
 use tauri::{Emitter, Listener};
+use tokio::sync::broadcast;
 
 pub struct EventBus {
     sender: broadcast::Sender<serde_json::Value>,

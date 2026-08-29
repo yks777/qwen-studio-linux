@@ -2,9 +2,9 @@
 name = "qwen-studio-linux"
 version = "1.0.1"
 description = "Desktop AI assistant wrapper for Qwen Chat"
-authors = ["NicolasToledoo"]
+authors = ["yks777"]
 license = "MIT"
-repository = "https://github.com/NicolasToledoo/qwen-studio-linux"
+repository = "https://github.com/yks777/qwen-studio-linux"
 edition = "2021"
 
 [lib]

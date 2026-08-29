@@ -3,12 +3,12 @@ mod auth;
 mod config;
 mod events;
 mod ipc;
+mod js;
 mod mcp;
 mod platform;
 mod profile;
 mod update;
 mod webview;
-mod js;
 
 pub fn run() {
     platform::env::configure_environment();
@@ -42,6 +42,8 @@ pub fn run() {
             ipc::window::get_language,
             ipc::clipboard::read_clipboard_image,
             ipc::clipboard::save_clipboard_image_to_file,
+            ipc::drop::get_file_metas,
+            ipc::drop::read_file_chunk,
             ipc::dialog::show_native_dialog,
             ipc::dialog::request_file_access,
             ipc::settings::get_setting,

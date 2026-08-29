@@ -1,11 +1,11 @@
+use crate::events::bus::EventBus;
+use crate::mcp::manager::McpManager;
+use crate::profile::Profile;
+use crate::update::manager::UpdateManager;
 use std::collections::HashMap;
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use crate::mcp::manager::McpManager;
-use crate::update::manager::UpdateManager;
-use crate::events::bus::EventBus;
-use crate::profile::Profile;
 
 pub struct AppState {
     pub mcp: Arc<RwLock<McpManager>>,

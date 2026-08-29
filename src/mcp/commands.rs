@@ -26,37 +26,66 @@ pub async fn mcp_client_close(app: tauri::AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub async fn mcp_client_tool_list(app: tauri::AppHandle, params: ToolListParams) -> Result<serde_json::Value, String> {
+pub async fn mcp_client_tool_list(
+    app: tauri::AppHandle,
+    params: ToolListParams,
+) -> Result<serde_json::Value, String> {
     let state = app.state::<AppState>();
     let bridge = {
         let mut mcp = state.mcp.write().await;
         mcp.ensure_bridge(&app).await?
     };
     log::info!("[MCP] tool_list {}", params.server_name);
-    let r = bridge.send("listTools", serde_json::json!({ "serverName": params.server_name }))
+    let r = bridge
+        .send(
+            "listTools",
+            serde_json::json!({ "serverName": params.server_name }),
+        )
         .await
         .map_err(|e| e.to_string());
-    log::info!("[MCP] tool_list {} -> {}", params.server_name, if r.is_ok() { "ok" } else { "err" });
+    log::info!(
+        "[MCP] tool_list {} -> {}",
+        params.server_name,
+        if r.is_ok() { "ok" } else { "err" }
+    );
     r
 }
 
 #[tauri::command]
-pub async fn mcp_client_tool_call(app: tauri::AppHandle, params: ToolCallParams) -> Result<serde_json::Value, String> {
+pub async fn mcp_client_tool_call(
+    app: tauri::AppHandle,
+    params: ToolCallParams,
+) -> Result<serde_json::Value, String> {
     let state = app.state::<AppState>();
     let bridge = {
         let mut mcp = state.mcp.write().await;
         mcp.ensure_bridge(&app).await?
     };
-    log::info!("[MCP] tool_call {}#{}", params.server_name, params.tool_name);
-    let r = bridge.send("callTool", serde_json::to_value(&params).unwrap_or_default())
+    log::info!(
+        "[MCP] tool_call {}#{}",
+        params.server_name,
+        params.tool_name
+    );
+    let r = bridge
+        .send(
+            "callTool",
+            serde_json::to_value(&params).unwrap_or_default(),
+        )
         .await
         .map_err(|e| e.to_string());
-    log::info!("[MCP] tool_call {}#{} -> {}", params.server_name, params.tool_name, if r.is_ok() { "ok" } else { "err" });
+    log::info!(
+        "[MCP] tool_call {}#{} -> {}",
+        params.server_name,
+        params.tool_name,
+        if r.is_ok() { "ok" } else { "err" }
+    );
     r
 }
 
 #[tauri::command]
-pub async fn mcp_client_get_config(_app: tauri::AppHandle) -> Result<HashMap<String, McpServerConfig>, String> {
+pub async fn mcp_client_get_config(
+    _app: tauri::AppHandle,
+) -> Result<HashMap<String, McpServerConfig>, String> {
     crate::mcp::config::load_config()
 }
 
@@ -74,7 +103,9 @@ pub async fn mcp_client_update_config(
     }
 
     if let Some(qc) = crate::config::defaults::mcp_servers().get("qwen-core") {
-        merged.entry("qwen-core".into()).or_insert_with(|| qc.clone());
+        merged
+            .entry("qwen-core".into())
+            .or_insert_with(|| qc.clone());
     }
 
     let merged = crate::config::defaults::normalize_mcp(merged);
@@ -95,7 +126,8 @@ pub async fn mcp_client_update_config(
         }
         mcp.ensure_bridge(&app).await?
     };
-    bridge.send("updateConfig", serde_json::json!({ "config": &merged }))
+    bridge
+        .send("updateConfig", serde_json::json!({ "config": &merged }))
         .await
         .map_err(|e| e.to_string())?;
 

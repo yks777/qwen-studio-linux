@@ -1,10 +1,8 @@
 use std::sync::{Arc, Mutex};
 
-use tauri::{AppHandle, Manager};
-use webkit2gtk::{
-    CookieManagerExt, JavascriptResult, WebViewExt, WebsiteDataManagerExt,
-};
 use gio::Cancellable;
+use tauri::{AppHandle, Manager};
+use webkit2gtk::{CookieManagerExt, JavascriptResult, WebViewExt, WebsiteDataManagerExt};
 
 use crate::profile::manager::{self, CookieData, Session};
 
@@ -100,13 +98,10 @@ pub async fn capture_session(app: &AppHandle, window_label: &str, profile_id: &s
             "JSON.stringify(Object.entries(localStorage))",
             None::<&Cancellable>,
             move |res: Result<JavascriptResult, glib::Error>| {
-                let ls = res
-                    .ok()
-                    .and_then(|r| r.js_value())
-                    .map(|v| {
-                        use javascriptcore::ValueExt;
-                        v.to_str().to_string()
-                    });
+                let ls = res.ok().and_then(|r| r.js_value()).map(|v| {
+                    use javascriptcore::ValueExt;
+                    v.to_str().to_string()
+                });
                 let _ = tx_ls.send(ls);
             },
         );
@@ -172,15 +167,19 @@ pub async fn restore_session(app: &AppHandle, window_label: &str, profile_id: &s
         for cookie_data in &cookies {
             let mut cookie = build_cookie(cookie_data);
             let state = state.clone();
-            manager.add_cookie(&mut cookie, None::<&Cancellable>, move |_res: Result<(), glib::Error>| {
-                let mut g = state.lock().unwrap_or_else(|e| e.into_inner());
-                g.0 += 1;
-                if g.0 >= total {
-                    if let Some(tx) = g.1.take() {
-                        let _ = tx.send(());
+            manager.add_cookie(
+                &mut cookie,
+                None::<&Cancellable>,
+                move |_res: Result<(), glib::Error>| {
+                    let mut g = state.lock().unwrap_or_else(|e| e.into_inner());
+                    g.0 += 1;
+                    if g.0 >= total {
+                        if let Some(tx) = g.1.take() {
+                            let _ = tx.send(());
+                        }
                     }
-                }
-            });
+                },
+            );
         }
 
         if total == 0 {

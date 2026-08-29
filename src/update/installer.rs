@@ -75,8 +75,6 @@ pub async fn install_update(file_path: PathBuf) -> Result<String, String> {
                 .map_err(|e| e.to_string())?;
             Ok("AppImage updated. Please restart.".into())
         }
-        BundleType::Unknown => {
-            Err("Unknown bundle type. Please install manually.".into())
-        }
+        BundleType::Unknown => Err("Unknown bundle type. Please install manually.".into()),
     }
 }

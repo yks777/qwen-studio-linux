@@ -80,11 +80,7 @@ fn save(profiles: &[Profile]) -> Result<(), String> {
     fs::rename(&tmp, &path).map_err(|e| e.to_string())
 }
 
-pub fn create(
-    name: &str,
-    category: Option<&str>,
-    icon: Option<&str>,
-) -> Result<Profile, String> {
+pub fn create(name: &str, category: Option<&str>, icon: Option<&str>) -> Result<Profile, String> {
     let name = name.trim().to_string();
     if name.is_empty() {
         return Err("Profile name cannot be empty".into());
@@ -97,7 +93,9 @@ pub fn create(
     let profile = Profile {
         id,
         name,
-        category: category.map(|s| s.trim().to_string()).filter(|s| !s.is_empty()),
+        category: category
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty()),
         icon: icon.map(|s| s.trim().to_string()).filter(|s| !s.is_empty()),
     };
     profiles.push(profile.clone());
@@ -111,7 +109,10 @@ pub fn rename(id: &str, name: &str) -> Result<(), String> {
         return Err("Profile name cannot be empty".into());
     }
     let mut profiles = load();
-    if profiles.iter().any(|p| p.id != id && p.name.eq_ignore_ascii_case(&name)) {
+    if profiles
+        .iter()
+        .any(|p| p.id != id && p.name.eq_ignore_ascii_case(&name))
+    {
         return Err("A profile with this name already exists".into());
     }
     let entry = profiles
@@ -161,7 +162,10 @@ pub fn update_profile(
         if n.is_empty() {
             return Err("Profile name cannot be empty".into());
         }
-        if profiles.iter().any(|p| p.id != id && p.name.eq_ignore_ascii_case(&n)) {
+        if profiles
+            .iter()
+            .any(|p| p.id != id && p.name.eq_ignore_ascii_case(&n))
+        {
             return Err("A profile with this name already exists".into());
         }
     }
@@ -175,7 +179,9 @@ pub fn update_profile(
         entry.name = n.trim().to_string();
     }
     if category.is_some() {
-        entry.category = category.map(|s| s.trim().to_string()).filter(|s| !s.is_empty());
+        entry.category = category
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty());
     }
     if icon.is_some() {
         entry.icon = icon.map(|s| s.trim().to_string()).filter(|s| !s.is_empty());

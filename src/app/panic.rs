@@ -25,7 +25,8 @@ fn log_crash_to_file(info: &panic::PanicHookInfo) {
     } else {
         "Unknown panic (non-string payload)".to_string()
     };
-    let location = info.location()
+    let location = info
+        .location()
         .map(|l| format!("{}:{}:{}", l.file(), l.line(), l.column()))
         .unwrap_or_else(|| "unknown".to_string());
 
@@ -45,9 +46,14 @@ fn log_crash_to_file(info: &panic::PanicHookInfo) {
         "=== Qwem Studio Linux Crash Report ===\n\
          Time: {}\nVersion: {}\nPlatform: {} {}\nThread: {}\n\n\
          Panic: {}\nLocation: {}\n\nBacktrace:\n{}\n",
-        timestamp, env!("CARGO_PKG_VERSION"),
-        std::env::consts::OS, std::env::consts::ARCH, thread_name,
-        message, location, backtrace_text
+        timestamp,
+        env!("CARGO_PKG_VERSION"),
+        std::env::consts::OS,
+        std::env::consts::ARCH,
+        thread_name,
+        message,
+        location,
+        backtrace_text
     );
 
     // Best-effort write + also log to stderr so coredumpctl/journald captures it.
@@ -55,7 +61,12 @@ fn log_crash_to_file(info: &panic::PanicHookInfo) {
         eprintln!("[Crash] Failed to write log {}: {}", log_file.display(), e);
     }
     eprintln!("{}", content);
-    log::error!("[Crash] Panic at {}: {} — logged to {}", location, message, log_file.display());
+    log::error!(
+        "[Crash] Panic at {}: {} — logged to {}",
+        location,
+        message,
+        log_file.display()
+    );
     log::error!("[Crash] Backtrace:\n{}", backtrace_text);
 }
 
@@ -74,7 +85,12 @@ pub fn list_crash_logs() -> Vec<String> {
         .into_iter()
         .flatten()
         .filter_map(|e| e.ok())
-        .filter(|e| e.path().extension().map(|ext| ext == "log").unwrap_or(false))
+        .filter(|e| {
+            e.path()
+                .extension()
+                .map(|ext| ext == "log")
+                .unwrap_or(false)
+        })
         .filter_map(|e| e.file_name().into_string().ok())
         .collect();
     logs.sort_unstable();

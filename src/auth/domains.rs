@@ -24,6 +24,5 @@ pub const AUTH_PATHS: &[&str] = &[
 ];
 
 pub fn is_auth_url(url: &str) -> bool {
-    AUTH_DOMAINS.iter().any(|d| url.contains(d))
-        || AUTH_PATHS.iter().any(|p| url.contains(p))
+    AUTH_DOMAINS.iter().any(|d| url.contains(d)) || AUTH_PATHS.iter().any(|p| url.contains(p))
 }

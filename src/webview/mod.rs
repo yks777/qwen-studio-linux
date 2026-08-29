@@ -1,3 +1,3 @@
-pub mod user_agent;
-pub mod navigation;
 pub mod js_injector;
+pub mod navigation;
+pub mod user_agent;

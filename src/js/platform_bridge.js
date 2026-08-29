@@ -215,6 +215,117 @@
         return dropAttempted;
     };
 
+    // Injeta um File já construído (usado pelo fluxo chunkado binário).
+    // Reaproveita trySyntheticDrop + fallback input sem re-decodificar base64.
+    function injectFileObject(file) {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        const dropAttempted = trySyntheticDrop(file, dt);
+        if (dropAttempted) {
+            console.log('[Qwen Studio] drop sintético (File object) disparado; tentando fallback <input>');
+        }
+        const input = findFileInput();
+        if (input) {
+            try {
+                const origDisplay = input.style.display;
+                const origVisibility = input.style.visibility;
+                const origHidden = input.hidden;
+                input.style.display = 'block';
+                input.style.visibility = 'visible';
+                input.hidden = false;
+                input.files = dt.files;
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.style.display = origDisplay;
+                input.style.visibility = origVisibility;
+                input.hidden = origHidden;
+                console.log('[Qwen Studio] injected File object via <input> fallback:', file.name);
+                return true;
+            } catch (err) {
+                console.warn('[Qwen Studio] input injection (File object) failed', err);
+            }
+        } else if (!dropAttempted) {
+            console.warn('[Qwen Studio] no <input type=file> found and drop not attempted (File object)');
+        }
+        return dropAttempted;
+    }
+    window.__qwenInjectFileObject = injectFileObject;
+
+    // --- drag-drop chunkado binário (sem limite) ---
+    // Rust envia só metas via eval; JS busca chunks binários via invoke('read_file_chunk')
+    // que retorna Response(Vec<u8>) → ArrayBuffer nativo (Tauri v2), sem base64.
+    let __qwenDropQueue = [];
+    let __qwenDropping = false;
+
+    async function injectLargeFile({ path, name, mime, size }) {
+        const CHUNK = 4 * 1024 * 1024; // 4 MiB
+        const parts = [];
+        console.log(`[Qwen Studio] iniciando transferência binária: ${name} (${size} bytes, mime=${mime})`);
+        try {
+            for (let off = 0; off < size; off += CHUNK) {
+                const len = Math.min(CHUNK, size - off);
+                // Tauri v2: invoke retorna ArrayBuffer quando Rust retorna Response
+                const buffer = await window.__TAURI__.core.invoke('read_file_chunk', {
+                    path,
+                    offset: off,
+                    length: len,
+                });
+                // buffer pode ser ArrayBuffer, Uint8Array ou array numérico dependendo da versão
+                let u8;
+                if (buffer instanceof ArrayBuffer) {
+                    u8 = new Uint8Array(buffer);
+                } else if (buffer instanceof Uint8Array) {
+                    u8 = buffer;
+                } else if (Array.isArray(buffer)) {
+                    u8 = new Uint8Array(buffer);
+                } else if (buffer && buffer.buffer instanceof ArrayBuffer) {
+                    u8 = new Uint8Array(buffer.buffer);
+                } else {
+                    // fallback: se veio como objeto com dados
+                    console.warn('[Qwen Studio] formato de chunk inesperado', typeof buffer);
+                    continue;
+                }
+                parts.push(u8);
+                // Yield a cada 16 MiB para não congelar UI e dar chance ao GC
+                if (off > 0 && off % (16 * 1024 * 1024) === 0) {
+                    await new Promise((r) => setTimeout(r, 0));
+                }
+            }
+            const file = new File(parts, name || 'file', { type: mime || 'application/octet-stream' });
+            console.log(`[Qwen Studio] File montado: ${file.name} ${file.size} bytes, injetando...`);
+            const ok = injectFileObject(file);
+            if (!ok) console.warn('[Qwen Studio] injeção do File chunkado falhou:', name);
+            return ok;
+        } catch (err) {
+            console.error('[Qwen Studio] injectLargeFile falhou:', name, err);
+            return false;
+        } finally {
+            parts.length = 0;
+        }
+    }
+
+    window.__qwenHandleDrop = async function(metas) {
+        if (!Array.isArray(metas) || metas.length === 0) return;
+        __qwenDropQueue.push(...metas);
+        if (__qwenDropping) {
+            console.log('[Qwen Studio] drop enfileirado (já processando), fila:', __qwenDropQueue.length);
+            return;
+        }
+        __qwenDropping = true;
+        while (__qwenDropQueue.length > 0) {
+            const m = __qwenDropQueue.shift();
+            try {
+                console.log('[Qwen Studio] processando drop:', m.name, m.size, 'bytes');
+                await injectLargeFile(m);
+            } catch (e) {
+                console.error('[Qwen Studio] falha no drop:', m.name, e);
+            }
+            // pequena pausa entre arquivos para GC
+            if (__qwenDropQueue.length > 0) await new Promise((r) => setTimeout(r, 100));
+        }
+        __qwenDropping = false;
+    };
+
     // --- inserção de texto robusta em componentes React ---
     // INPUT/TEXTAREA: usa o native value setter (React controlado ignora
     // atribuição direta) e dispara `input`. contenteditable: muta o DOM e

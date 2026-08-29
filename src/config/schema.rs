@@ -19,7 +19,9 @@ pub struct GeneralSettings {
     pub theme: String,
 }
 
-fn default_true() -> bool { true }
+fn default_true() -> bool {
+    true
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct McpServerConfig {
@@ -30,7 +32,11 @@ pub struct McpServerConfig {
     pub env: Option<HashMap<String, String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cwd: Option<String>,
-    #[serde(rename = "transportType", default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "transportType",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
     pub transport_type: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,

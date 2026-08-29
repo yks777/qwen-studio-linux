@@ -1,6 +1,6 @@
 use tauri::{
     image::Image,
-    menu::{Menu, MenuItem, Submenu, SubmenuBuilder, MenuItemBuilder},
+    menu::{Menu, MenuItem, MenuItemBuilder, Submenu, SubmenuBuilder},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
 };
 
@@ -9,25 +9,23 @@ use crate::profile::manager;
 pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
     let new_window_item = MenuItem::with_id(app, "new_window", "New Window", true, None::<&str>)?;
 
-    let open_panel_item = MenuItemBuilder::with_id("profiles_panel", "Abrir painel dos perfils")
-        .build(app)?;
+    let open_panel_item =
+        MenuItemBuilder::with_id("profiles_panel", "Abrir painel dos perfils").build(app)?;
 
     let mut owned: Vec<tauri::menu::MenuItem<tauri::Wry>> = Vec::new();
     for p in manager::load() {
-        owned.push(
-            MenuItemBuilder::with_id(format!("open-profile:{}", p.id), p.name)
-                .build(app)?,
-        );
+        owned.push(MenuItemBuilder::with_id(format!("open-profile:{}", p.id), p.name).build(app)?);
     }
-    let item_refs: Vec<&dyn tauri::menu::IsMenuItem<tauri::Wry>> =
-        owned.iter().map(|i| i as &dyn tauri::menu::IsMenuItem<tauri::Wry>).collect();
+    let item_refs: Vec<&dyn tauri::menu::IsMenuItem<tauri::Wry>> = owned
+        .iter()
+        .map(|i| i as &dyn tauri::menu::IsMenuItem<tauri::Wry>)
+        .collect();
 
     let open_profile_sub: Submenu<tauri::Wry> = SubmenuBuilder::new(app, "Abrir perfil")
         .items(&item_refs)
         .build()?;
 
-    let create_item = MenuItemBuilder::with_id("create_profile", "Criar perfil")
-        .build(app)?;
+    let create_item = MenuItemBuilder::with_id("create_profile", "Criar perfil").build(app)?;
 
     let profiles_sub: Submenu<tauri::Wry> = SubmenuBuilder::new(app, "Perfils")
         .item(&open_panel_item)
@@ -42,12 +40,7 @@ pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
 
     let menu = Menu::with_items(
         app,
-        &[
-            &new_window_item,
-            &profiles_sub,
-            &show_item,
-            &quit_item,
-        ],
+        &[&new_window_item, &profiles_sub, &show_item, &quit_item],
     )?;
 
     let icon_bytes = include_bytes!("../../icons/icon.png");
@@ -89,9 +82,7 @@ pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                 let profile_id = id.trim_start_matches("open-profile:").to_string();
                 let app = app.clone();
                 tauri::async_runtime::spawn(async move {
-                    if let Some(profile) = manager::load()
-                        .into_iter()
-                        .find(|p| p.id == profile_id)
+                    if let Some(profile) = manager::load().into_iter().find(|p| p.id == profile_id)
                     {
                         let _ = crate::app::lifecycle::open_profile_window(&app, &profile);
                     }
@@ -119,7 +110,9 @@ pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                 ..
             } = event
             {
-                if let Some(window) = crate::app::window_utils::active_webview_window(tray.app_handle()) {
+                if let Some(window) =
+                    crate::app::window_utils::active_webview_window(tray.app_handle())
+                {
                     let _ = window.show();
                     let _ = window.set_focus();
                 }
