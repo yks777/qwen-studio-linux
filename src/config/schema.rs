@@ -21,12 +21,15 @@ pub struct GeneralSettings {
     pub theme: String,
 }
 
+<<<<<<< HEAD
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct PerformanceSettings {
     #[serde(default)]
     pub force_software_rendering: bool,
 }
 
+=======
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
 fn default_true() -> bool {
     true
 }
