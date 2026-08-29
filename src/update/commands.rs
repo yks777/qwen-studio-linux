@@ -67,7 +67,29 @@ pub async fn check_for_updates(app: AppHandle, silent: bool) -> Result<UpdateInf
         )
         .map_err(|e| e.to_string())?;
 
+<<<<<<< HEAD
         // No auto-install: user must explicitly click "Install" in Updates tab
+=======
+        // Self-update: download + install automatically in the background.
+        // Triggered from Rust (single source) to avoid parallel downloads
+        // across the multiple webviews that inject this script.
+        if let Some(url) = install_url {
+            let app2 = app.clone();
+            tauri::async_runtime::spawn(async move {
+                match install_update_with_progress(app2.clone(), url).await {
+                    Ok(s) if s != "already-updating" => {
+                        let _ = app2.emit(
+                            "event_from_main",
+                            serde_json::json!({
+                                "type": "update-installed"
+                            }),
+                        );
+                    }
+                    _ => {}
+                }
+            });
+        }
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
     }
 
     Ok(info)
@@ -154,7 +176,20 @@ pub async fn install_update_with_progress(app: AppHandle, url: String) -> Result
     file.flush().await.map_err(|e| e.to_string())?;
     drop(file);
 
+<<<<<<< HEAD
     let result = super::installer::install_update(file_path).await;
+=======
+        let tmp_dir = std::env::temp_dir();
+        let file_name = url.rsplit('/').next().unwrap_or("update.tmp");
+        let file_path = tmp_dir.join(file_name);
+        std::fs::write(&file_path, &file_content).map_err(|e| e.to_string())?;
+
+        super::installer::install_update(file_path).await
+    }
+    .await;
+
+    INSTALLING.store(false, Ordering::SeqCst);
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
     result
 }
 

@@ -3,6 +3,7 @@ use crate::auth::domains::is_auth_url as is_auth_url_strict;
 const MAIN_URL: &str = "https://chat.qwen.ai";
 
 pub fn is_allowed(url: &str) -> bool {
+<<<<<<< HEAD
     // 1) chat.qwen.ai sempre permitido (host exato para evitar chat.qwen.ai.evil.com)
     if url.starts_with(MAIN_URL) {
         if let Ok(parsed) = url::Url::parse(url) {
@@ -33,4 +34,11 @@ pub fn is_allowed(url: &str) -> bool {
         return url.starts_with("about:blank");
     }
     false
+=======
+    url.starts_with(MAIN_URL) || is_auth_url(url)
+}
+
+fn is_auth_url(url: &str) -> bool {
+    AUTH_DOMAINS.iter().any(|d| url.contains(d)) || AUTH_PATHS.iter().any(|p| url.contains(p))
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
 }

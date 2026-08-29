@@ -36,11 +36,16 @@ pub async fn request_file_access(
         let _ = tx.send(f.and_then(|f| f.as_path().map(|p| p.to_string_lossy().to_string())));
     });
     let path = rx
+<<<<<<< HEAD
         .await
+=======
+        .recv()
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
         .map_err(|e| e.to_string())?
         .ok_or("No file selected")?;
     let mut result = serde_json::json!({ "filePath": path });
     if return_file.unwrap_or(false) {
+<<<<<<< HEAD
         let content = tokio::task::spawn_blocking({
             let p = path.clone();
             move || {
@@ -54,6 +59,10 @@ pub async fn request_file_access(
         .await
         .map_err(|e| e.to_string())??;
         result["file"] = serde_json::Value::String(content);
+=======
+        result["file"] =
+            serde_json::Value::String(std::fs::read_to_string(&path).map_err(|e| e.to_string())?);
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
     }
     Ok(result)
 }

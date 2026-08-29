@@ -38,6 +38,7 @@ fn path_is_auth(path: &str) -> bool {
 }
 
 pub fn is_auth_url(url: &str) -> bool {
+<<<<<<< HEAD
     let Ok(parsed) = url::Url::parse(url) else {
         return false;
     };
@@ -67,4 +68,7 @@ pub fn is_auth_url(url: &str) -> bool {
         return path_is_auth(&path) || path == "/" || path.is_empty();
     }
     true
+=======
+    AUTH_DOMAINS.iter().any(|d| url.contains(d)) || AUTH_PATHS.iter().any(|p| url.contains(p))
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
 }

@@ -30,6 +30,7 @@ pub async fn create_new_window(app: tauri::AppHandle) -> Result<String, String> 
     }
 
     let window = builder.build().map_err(|e| e.to_string())?;
+<<<<<<< HEAD
 
     // Aplica zoom persistido
     {
@@ -42,6 +43,8 @@ pub async fn create_new_window(app: tauri::AppHandle) -> Result<String, String> 
             let _ = window.eval(js);
         }
     }
+=======
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
 
     crate::app::window_utils::attach_file_drop_handler(&window);
 
@@ -124,8 +127,15 @@ pub async fn open_external_link(app: tauri::AppHandle, url: String) -> Result<bo
     }
     if crate::auth::domains::is_auth_url(&url) {
         if let Some(w) = crate::app::window_utils::active_webview_window_async(&app).await {
+<<<<<<< HEAD
             let js_url = serde_json::to_string(&url).map_err(|e| e.to_string())?;
             let _ = w.eval(format!("window.location.href = {};", js_url));
+=======
+            let _ = w.eval(format!(
+                "window.location.href = '{}';",
+                url.replace('\'', "\\'")
+            ));
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
             return Ok(true);
         }
     }

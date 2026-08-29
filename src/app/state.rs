@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+use crate::events::bus::EventBus;
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
 use crate::mcp::manager::McpManager;
 use crate::profile::Profile;
 use crate::update::manager::UpdateManager;

@@ -1,4 +1,10 @@
+<<<<<<< HEAD
+=======
+#![allow(dead_code)]
+
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
 use tauri::{Emitter, Listener};
+use tokio::sync::broadcast;
 
 const ALLOWED_EVENT_TYPES: &[&str] = &[
     "theme_changed",

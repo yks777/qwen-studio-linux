@@ -75,7 +75,10 @@ pub fn open_profile_picker(app: &AppHandle) -> Result<(), Box<dyn std::error::Er
     .resizable(true)
     .decorations(true)
     .visible(false)
+<<<<<<< HEAD
     .initialization_script(&picker_script)
+=======
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
     .build()?;
 
     // Fallback: force-show the picker if the page's JS show() never fires,
@@ -169,6 +172,7 @@ pub fn open_profile_window(
     .initialization_script(&init_script)
     .enable_clipboard_access()
     .on_navigation(|url| crate::webview::navigation::is_allowed(url.as_ref()))
+<<<<<<< HEAD
     .on_page_load({
         let pid_clone = pid.clone();
         move |w, payload| {
@@ -189,6 +193,14 @@ pub fn open_profile_window(
                             let _ = w.eval(js);
                         }
                     }
+=======
+    .on_page_load(move |w, payload| {
+        if payload.event() == PageLoadEvent::Finished && !restored.swap(true, Ordering::SeqCst) {
+            if let Some(session) = manager::load_session(&pid) {
+                if !session.local_storage.is_empty() {
+                    let js = crate::profile::cookies::restore_local_storage_js(&session);
+                    let _ = w.eval(js);
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
                 }
             }
         }

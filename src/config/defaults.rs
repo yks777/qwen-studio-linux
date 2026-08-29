@@ -21,8 +21,11 @@ pub fn mcp_servers() -> HashMap<String, McpServerConfig> {
         },
     );
 
+<<<<<<< HEAD
     // Restrict Filesystem to Documents + Projects + /tmp by default (not whole home)
     let documents = format!("{}/Documents", home);
+=======
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
     config.insert(
         "Filesystem".into(),
         McpServerConfig {
@@ -30,9 +33,15 @@ pub fn mcp_servers() -> HashMap<String, McpServerConfig> {
             args: vec![
                 "-y".into(),
                 "@modelcontextprotocol/server-filesystem".into(),
+<<<<<<< HEAD
                 documents,
                 projects,
                 "/tmp".into(),
+=======
+                home,
+                "/tmp".into(),
+                projects,
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
             ],
             transport_type: Some("stdio".into()),
             ..Default::default()
@@ -77,6 +86,7 @@ pub fn normalize_mcp(
             })
             .collect();
 
+<<<<<<< HEAD
         // Ensure at least one safe directory remains; don't auto-re-add home if user removed it
         let has_safe_dir = fs_config.args.iter().any(|a| {
             a == &documents || a == &projects || a == "/tmp" || a == &home
@@ -84,6 +94,16 @@ pub fn normalize_mcp(
         if !has_safe_dir {
             // User removed all safe dirs — restore documents as minimal safe default
             fs_config.args.push(documents);
+=======
+        if !fs_config.args.iter().any(|a| a == &home) {
+            fs_config.args.push(home);
+        }
+        if !fs_config.args.iter().any(|a| a == &projects) {
+            fs_config.args.push(projects);
+        }
+        if !fs_config.args.iter().any(|a| a == "/tmp") {
+            fs_config.args.push("/tmp".into());
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
         }
     }
     config

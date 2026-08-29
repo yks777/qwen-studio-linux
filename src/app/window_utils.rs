@@ -38,6 +38,7 @@ pub fn attach_file_drop_handler(window: &WebviewWindow) {
                     }
                 };
                 let size = meta.len();
+<<<<<<< HEAD
                 const MAX_DROP_SIZE: u64 = 100 * 1024 * 1024; // 100 MiB limite para economia de RAM
                 if size > MAX_DROP_SIZE {
                     log::warn!(
@@ -48,6 +49,9 @@ pub fn attach_file_drop_handler(window: &WebviewWindow) {
                     continue;
                 }
                 if size > 512 * 1024 * 1024 {
+=======
+                if size > 1024 * 1024 * 1024 {
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
                     log::warn!(
                         "[drop] arquivo grande detectado: {:?} ({} bytes)",
                         path,
@@ -87,6 +91,7 @@ pub fn attach_file_drop_handler(window: &WebviewWindow) {
     });
 }
 
+<<<<<<< HEAD
 fn resolve_focused_label(app: &tauri::AppHandle, try_sync: bool) -> Option<String> {
     let state = app.try_state::<crate::app::state::AppState>()?;
     if try_sync {
@@ -98,6 +103,8 @@ fn resolve_focused_label(app: &tauri::AppHandle, try_sync: bool) -> Option<Strin
     }
 }
 
+=======
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
 /// Returns the most relevant window to act on for window-scoped commands
 /// (zoom, devtools, reload, minimize, etc.).
 ///
@@ -108,9 +115,19 @@ fn resolve_focused_label(app: &tauri::AppHandle, try_sync: bool) -> Option<Strin
 /// Uses `try_read` instead of `blocking_read` so it never panics when called
 /// from a `tokio-rt-worker`.
 pub fn active_webview_window(app: &tauri::AppHandle) -> Option<WebviewWindow> {
+<<<<<<< HEAD
     if let Some(label) = resolve_focused_label(app, true) {
         if let Some(w) = app.get_webview_window(&label) {
             return Some(w);
+=======
+    if let Some(state) = app.try_state::<crate::app::state::AppState>() {
+        if let Ok(last) = state.last_focused.try_read() {
+            if let Some(label) = last.as_ref() {
+                if let Some(w) = app.get_webview_window(label) {
+                    return Some(w);
+                }
+            }
+>>>>>>> c0c2f30 (Fix: Upload medias e username)
         }
     }
 
