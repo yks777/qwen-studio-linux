@@ -1,6 +1,6 @@
-use std::collections::HashMap;
-use crate::config::schema::McpServerConfig;
 use crate::config;
+use crate::config::schema::McpServerConfig;
+use std::collections::HashMap;
 
 pub fn load_config() -> Result<HashMap<String, McpServerConfig>, String> {
     let settings = config::store::load();

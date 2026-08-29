@@ -1,8 +1,8 @@
-use std::fs;
 use serde_json::Value;
+use std::fs;
 
-use super::schema::Settings;
 use super::paths;
+use super::schema::Settings;
 
 pub fn save(settings: &Settings) -> Result<(), String> {
     let path = paths::settings_file();

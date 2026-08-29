@@ -3,10 +3,10 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
+use tauri::Manager;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::process::Command;
 use tokio::sync::Mutex;
-use tauri::Manager;
 
 type PendingMap = HashMap<u64, tokio::sync::oneshot::Sender<Result<serde_json::Value>>>;
 
@@ -34,8 +34,16 @@ impl Bridge {
         let pending: Arc<Mutex<PendingMap>> = Arc::new(Mutex::new(HashMap::new()));
         let request_id = Arc::new(AtomicU64::new(0));
 
-        let stdin = Arc::new(Mutex::new(child.stdin.take().ok_or_else(|| anyhow::anyhow!("No stdin"))?));
-        let stdout = child.stdout.take().ok_or_else(|| anyhow::anyhow!("No stdout"))?;
+        let stdin = Arc::new(Mutex::new(
+            child
+                .stdin
+                .take()
+                .ok_or_else(|| anyhow::anyhow!("No stdin"))?,
+        ));
+        let stdout = child
+            .stdout
+            .take()
+            .ok_or_else(|| anyhow::anyhow!("No stdout"))?;
 
         let pending_read = Arc::clone(&pending);
         tokio::spawn(Self::read_loop(stdout, pending_read));
@@ -100,10 +108,7 @@ impl Bridge {
         }
     }
 
-    async fn read_loop(
-        stdout: tokio::process::ChildStdout,
-        pending: Arc<Mutex<PendingMap>>,
-    ) {
+    async fn read_loop(stdout: tokio::process::ChildStdout, pending: Arc<Mutex<PendingMap>>) {
         let mut reader = BufReader::new(stdout);
         let mut line = String::new();
         loop {
@@ -141,11 +146,17 @@ impl Bridge {
             if let Some(result) = msg.get("result") {
                 let _ = tx.send(Ok(result.clone()));
             } else if let Some(error) = msg.get("error") {
-                let msg = error.get("message").and_then(|m| m.as_str()).unwrap_or("unknown");
+                let msg = error
+                    .get("message")
+                    .and_then(|m| m.as_str())
+                    .unwrap_or("unknown");
                 let _ = tx.send(Err(anyhow::anyhow!("{}", msg)));
             }
         } else {
-            log::debug!("[Bridge] dispatch #{} no pending waiter (stale/duplicate)", id);
+            log::debug!(
+                "[Bridge] dispatch #{} no pending waiter (stale/duplicate)",
+                id
+            );
         }
     }
 
@@ -187,9 +198,8 @@ fn resolve_bridge_path(app: Option<&tauri::AppHandle>) -> Result<std::path::Path
         }
     }
 
-    let manifest = std::path::PathBuf::from(
-        concat!(env!("CARGO_MANIFEST_DIR"), "/", "mcp-bridge.mjs")
-    );
+    let manifest =
+        std::path::PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/", "mcp-bridge.mjs"));
     if manifest.exists() {
         return Ok(manifest);
     }

@@ -1,7 +1,7 @@
-use std::collections::HashMap;
-use std::sync::Arc;
 use super::bridge::Bridge;
 use crate::config::schema::McpServerConfig;
+use std::collections::HashMap;
+use std::sync::Arc;
 
 pub struct McpManager {
     bridge: Option<Arc<Bridge>>,
@@ -27,7 +27,8 @@ impl McpManager {
         })?);
 
         let config = crate::mcp::config::load_config()?;
-        bridge.send("updateConfig", serde_json::json!({ "config": &config }))
+        bridge
+            .send("updateConfig", serde_json::json!({ "config": &config }))
             .await
             .map_err(|e| format!("Config update: {}", e))?;
 

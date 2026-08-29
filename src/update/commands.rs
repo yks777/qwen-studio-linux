@@ -1,8 +1,8 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use tauri::{AppHandle, Emitter, Manager};
 use crate::app::state::AppState;
 use crate::config::schema::UpdateInfo;
+use tauri::{AppHandle, Emitter, Manager};
 
 /// Guards against concurrent install runs (the update can be triggered from
 /// multiple windows at once, e.g. every profile webview).
@@ -43,10 +43,14 @@ pub async fn check_for_updates(app: AppHandle, silent: bool) -> Result<UpdateInf
     updates.cache_info(info.clone());
 
     if available && !silent {
-        app.emit("event_from_main", serde_json::json!({
-            "type": "update-available",
-            "payload": info
-        })).map_err(|e| e.to_string())?;
+        app.emit(
+            "event_from_main",
+            serde_json::json!({
+                "type": "update-available",
+                "payload": info
+            }),
+        )
+        .map_err(|e| e.to_string())?;
 
         // Self-update: download + install automatically in the background.
         // Triggered from Rust (single source) to avoid parallel downloads
@@ -56,9 +60,12 @@ pub async fn check_for_updates(app: AppHandle, silent: bool) -> Result<UpdateInf
             tauri::async_runtime::spawn(async move {
                 match install_update_with_progress(app2.clone(), url).await {
                     Ok(s) if s != "already-updating" => {
-                        let _ = app2.emit("event_from_main", serde_json::json!({
-                            "type": "update-installed"
-                        }));
+                        let _ = app2.emit(
+                            "event_from_main",
+                            serde_json::json!({
+                                "type": "update-installed"
+                            }),
+                        );
                     }
                     _ => {}
                 }
@@ -105,7 +112,8 @@ pub async fn install_update_with_progress(app: AppHandle, url: String) -> Result
         std::fs::write(&file_path, &file_content).map_err(|e| e.to_string())?;
 
         super::installer::install_update(file_path).await
-    }.await;
+    }
+    .await;
 
     INSTALLING.store(false, Ordering::SeqCst);
     result

@@ -1,5 +1,5 @@
 use tauri::{
-    menu::{MenuBuilder, SubmenuBuilder, MenuItemBuilder, PredefinedMenuItem, Submenu},
+    menu::{MenuBuilder, MenuItemBuilder, PredefinedMenuItem, Submenu, SubmenuBuilder},
     Listener,
 };
 
@@ -73,8 +73,8 @@ pub fn build_app_menu(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::
 fn build_profiles_submenu(app: &tauri::AppHandle) -> MenuResult {
     let profiles = manager::load();
 
-    let open_panel = MenuItemBuilder::with_id("profiles_panel", "Abrir painel dos perfils")
-        .build(app)?;
+    let open_panel =
+        MenuItemBuilder::with_id("profiles_panel", "Abrir painel dos perfils").build(app)?;
 
     let mut owned: Vec<tauri::menu::MenuItem<tauri::Wry>> = Vec::new();
     for p in &profiles {
@@ -83,8 +83,10 @@ fn build_profiles_submenu(app: &tauri::AppHandle) -> MenuResult {
                 .build(app)?,
         );
     }
-    let item_refs: Vec<&dyn tauri::menu::IsMenuItem<tauri::Wry>> =
-        owned.iter().map(|i| i as &dyn tauri::menu::IsMenuItem<tauri::Wry>).collect();
+    let item_refs: Vec<&dyn tauri::menu::IsMenuItem<tauri::Wry>> = owned
+        .iter()
+        .map(|i| i as &dyn tauri::menu::IsMenuItem<tauri::Wry>)
+        .collect();
 
     let open_profile_sub = SubmenuBuilder::new(app, "Abrir perfil")
         .items(&item_refs)
@@ -193,7 +195,7 @@ pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                 });
             }
             "github" => {
-                let _ = open::that("https://github.com/NicolasToledoo/qwen-studio-linux");
+                let _ = open::that("https://github.com/yks777/qwen-studio-linux");
             }
             "check_updates" => {
                 let handle = handle.clone();

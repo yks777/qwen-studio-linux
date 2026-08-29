@@ -50,7 +50,7 @@
 
 ## Download
 
-Prebuilt binaries (`.deb`, `.rpm`, `.AppImage`) for Linux are on [GitHub Releases](https://github.com/NicolasToledoo/qwen-studio-linux/releases/latest). Download the package for your distro and follow the steps in [Installation](#installation).
+Prebuilt binaries (`.deb`, `.rpm`, `.AppImage`) for Linux are on [GitHub Releases](https://github.com/yks777/qwen-studio-linux/releases/latest). Download the package for your distro and follow the steps in [Installation](#installation).
 
 ---
 
@@ -377,7 +377,7 @@ Distributed under the **MIT** license. See `Cargo.toml`.
 
 ## Download
 
-Binários prontos (`.deb`, `.rpm`, `.AppImage`) para Linux estão em [GitHub Releases](https://github.com/NicolasToledoo/qwen-studio-linux/releases/latest). Baixe o formato da sua distro e siga os passos em [Instalação](#instalação).
+Binários prontos (`.deb`, `.rpm`, `.AppImage`) para Linux estão em [GitHub Releases](https://github.com/yks777/qwen-studio-linux/releases/latest). Baixe o formato da sua distro e siga os passos em [Instalação](#instalação).
 
 ---
 

@@ -1,5 +1,5 @@
-use tauri::{AppHandle, Emitter};
 use crate::profile::{manager, Profile};
+use tauri::{AppHandle, Emitter};
 
 #[tauri::command]
 pub fn list_profiles() -> Vec<Profile> {
@@ -58,12 +58,8 @@ pub fn update_profile(
     category: Option<String>,
     icon: Option<String>,
 ) -> Result<Profile, String> {
-    let profile = manager::update_profile(
-        &id,
-        name.as_deref(),
-        category.as_deref(),
-        icon.as_deref(),
-    )?;
+    let profile =
+        manager::update_profile(&id, name.as_deref(), category.as_deref(), icon.as_deref())?;
     let _ = app.emit("profiles-updated", ());
     Ok(profile)
 }
