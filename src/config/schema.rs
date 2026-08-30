@@ -7,6 +7,8 @@ pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub struct Settings {
     #[serde(default)]
     pub general: GeneralSettings,
+    #[serde(default)]
+    pub performance: PerformanceSettings,
     #[serde(default, rename = "mcpServers")]
     pub mcp_servers: HashMap<String, McpServerConfig>,
 }
@@ -23,6 +25,7 @@ pub struct GeneralSettings {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 fn default_zoom() -> f64 {
     1.0
 =======
@@ -33,16 +36,21 @@ fn default_true() -> bool {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> ce2f600 (optimization)
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct PerformanceSettings {
     #[serde(default)]
     pub force_software_rendering: bool,
 }
 
+<<<<<<< HEAD
 =======
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
 =======
 >>>>>>> 5877c22 (restore)
+=======
+>>>>>>> ce2f600 (optimization)
 fn default_true() -> bool {
     true
 }

@@ -70,6 +70,7 @@ pub async fn handle_shortcut(app: tauri::AppHandle, action: String) -> Result<()
             let _ = super::window::toggle_hidden_devtools(app).await;
         }
         "zoom_in" => {
+<<<<<<< HEAD
             let z = (current_zoom() + 0.1).clamp(0.5, 3.0);
             persist_zoom(z);
             apply_zoom(
@@ -88,6 +89,25 @@ pub async fn handle_shortcut(app: tauri::AppHandle, action: String) -> Result<()
         "zoom_reset" => {
             persist_zoom(1.0);
             apply_zoom(&app, "document.documentElement.style.zoom = '1.0'; document.body.style.zoom = '1.0';");
+=======
+            if let Some(w) = crate::app::window_utils::active_webview_window(&app) {
+                let _ = w.eval(
+                    "window.__qwenSetZoom && window.__qwenSetZoom(Math.min(2.0, (window.__qwenCurrentZoom||1)+0.1));",
+                );
+            }
+        }
+        "zoom_out" => {
+            if let Some(w) = crate::app::window_utils::active_webview_window(&app) {
+                let _ = w.eval(
+                    "window.__qwenSetZoom && window.__qwenSetZoom(Math.max(0.5, (window.__qwenCurrentZoom||1)-0.1));",
+                );
+            }
+        }
+        "zoom_reset" => {
+            if let Some(w) = crate::app::window_utils::active_webview_window(&app) {
+                let _ = w.eval("window.__qwenSetZoom && window.__qwenSetZoom(1.0);");
+            }
+>>>>>>> ce2f600 (optimization)
         }
         _ => {
             log::warn!("[Shortcuts] Unknown action: {}", action);
