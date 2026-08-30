@@ -144,17 +144,3 @@ pub async fn update_title_bar_for_system_theme(
 pub async fn get_language() -> Result<String, String> {
     Ok("en-US".into())
 }
-
-#[tauri::command]
-pub fn set_zoom(app: tauri::AppHandle, factor: f64) -> Result<(), String> {
-    let factor = factor.clamp(0.5, 2.0);
-    if let Some(w) = crate::app::window_utils::active_webview_window(&app) {
-        w.set_zoom(factor).map_err(|e| e.to_string())?;
-        // Keep JS mirror in sync for wheel/key handlers without re-triggering IPC
-        let _ = w.eval(format!(
-            "window.__qwenSyncZoom && window.__qwenSyncZoom({});",
-            factor
-        ));
-    }
-    Ok(())
-}

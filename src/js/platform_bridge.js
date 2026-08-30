@@ -11,31 +11,10 @@
     // sintéticos (change/input) que poderiam re-triggerar o listener.
     let __pasteInProgress = false;
 
-    let __zoomTimer = null;
     function applyZoom(scale) {
         currentZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, scale));
-        window.__qwenCurrentZoom = currentZoom;
-        if (__zoomTimer) clearTimeout(__zoomTimer);
-        __zoomTimer = setTimeout(() => {
-            // Native WebView zoom via Rust (wry set_zoom_level) — no reflow lag
-            const invoke = window.__TAURI__?.core?.invoke;
-            if (invoke) {
-                invoke('set_zoom', { factor: currentZoom }).catch(() => {
-                    // Fallback to plugin directly if custom command unavailable
-                    invoke('plugin:webview|set_webview_zoom', { value: currentZoom }).catch(() => {});
-                });
-            }
-        }, 50);
+        document.body.style.zoom = currentZoom;
     }
-    // Expose for Rust menu/shortcuts via eval
-    window.__qwenCurrentZoom = currentZoom;
-    window.__qwenSetZoom = function(factor) {
-        applyZoom(factor);
-    };
-    window.__qwenSyncZoom = function(factor) {
-        currentZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, factor));
-        window.__qwenCurrentZoom = currentZoom;
-    };
 
     document.addEventListener('wheel', (e) => {
         if (e.ctrlKey) {

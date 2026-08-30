@@ -43,12 +43,11 @@ pub fn build_init_script() -> String {
         })();
     "#;
 
-    // Secondary windows (window-*) get only core + platform bridge.
-    // Main profile windows (main-*) keep settings_injector via crate::js::build_init_script().
     let modules = [
         pre_load_script,
         include_str!("../js/core_bridge.js"),
         include_str!("../js/platform_bridge.js"),
+        include_str!("../js/settings_injector.js"),
     ];
     modules.join("\n\n")
 }
