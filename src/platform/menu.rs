@@ -236,6 +236,7 @@ pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                     // Persiste zoom em settings.json para paridade navegador (por origem)
                     let mut s = crate::config::store::load();
                     let cur = if s.general.zoom == 0.0 { 1.0 } else { s.general.zoom };
@@ -258,15 +259,23 @@ pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
 =======
                     let _ = w.eval("document.body.style.zoom = Math.min(2.0, parseFloat(document.body.style.zoom||'1') + 0.1);");
 >>>>>>> 5877c22 (restore)
+=======
+                    let _ = w.eval(
+                        "window.__qwenSetZoom && window.__qwenSetZoom(Math.min(2.0, (window.__qwenCurrentZoom||1)+0.1));",
+                    );
+>>>>>>> ce2f600 (optimization)
                 }
             }
             "zoom_out" => {
                 if let Some(w) = crate::app::window_utils::active_webview_window(app) {
-                    let _ = w.eval("document.body.style.zoom = Math.max(0.5, parseFloat(document.body.style.zoom||'1') - 0.1);");
+                    let _ = w.eval(
+                        "window.__qwenSetZoom && window.__qwenSetZoom(Math.max(0.5, (window.__qwenCurrentZoom||1)-0.1));",
+                    );
                 }
             }
             "zoom_reset" => {
                 if let Some(w) = crate::app::window_utils::active_webview_window(app) {
+<<<<<<< HEAD
 <<<<<<< HEAD
                     let _ = w.eval("window.__qwenSetZoom && window.__qwenSetZoom(1.0);");
 >>>>>>> ce2f600 (optimization)
@@ -281,6 +290,9 @@ pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                     };
                     let _ = w.eval(script);
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
+=======
+                    let _ = w.eval("window.__qwenSetZoom && window.__qwenSetZoom(1.0);");
+>>>>>>> ce2f600 (optimization)
                 }
             }
             "new_window" => {

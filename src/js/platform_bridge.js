@@ -11,8 +11,10 @@
     // sintéticos (change/input) que poderiam re-triggerar o listener.
     let __pasteInProgress = false;
 
+    let __zoomTimer = null;
     function applyZoom(scale) {
         currentZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, scale));
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
         document.documentElement.style.zoom = currentZoom;
@@ -34,6 +36,8 @@
             document.documentElement.style.zoom = 1.0; document.body.style.zoom = 1.0; currentZoom = 1.0;
         }
 =======
+=======
+>>>>>>> ce2f600 (optimization)
         window.__qwenCurrentZoom = currentZoom;
         if (__zoomTimer) clearTimeout(__zoomTimer);
         __zoomTimer = setTimeout(() => {
@@ -46,11 +50,23 @@
                 });
             }
         }, 50);
+<<<<<<< HEAD
 >>>>>>> ce2f600 (optimization)
 =======
         document.body.style.zoom = currentZoom;
 >>>>>>> 5877c22 (restore)
+=======
+>>>>>>> ce2f600 (optimization)
     }
+    // Expose for Rust menu/shortcuts via eval
+    window.__qwenCurrentZoom = currentZoom;
+    window.__qwenSetZoom = function(factor) {
+        applyZoom(factor);
+    };
+    window.__qwenSyncZoom = function(factor) {
+        currentZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, factor));
+        window.__qwenCurrentZoom = currentZoom;
+    };
 
     document.addEventListener('wheel', (e) => {
         if (e.ctrlKey) {
