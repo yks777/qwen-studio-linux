@@ -7,6 +7,8 @@ pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub struct Settings {
     #[serde(default)]
     pub general: GeneralSettings,
+    #[serde(default)]
+    pub performance: PerformanceSettings,
     #[serde(default, rename = "mcpServers")]
     pub mcp_servers: HashMap<String, McpServerConfig>,
 }
@@ -17,6 +19,12 @@ pub struct GeneralSettings {
     pub check_updates: bool,
     #[serde(default)]
     pub theme: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct PerformanceSettings {
+    #[serde(default)]
+    pub force_software_rendering: bool,
 }
 
 fn default_true() -> bool {
