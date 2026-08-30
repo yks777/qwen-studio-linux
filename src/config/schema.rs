@@ -7,8 +7,6 @@ pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub struct Settings {
     #[serde(default)]
     pub general: GeneralSettings,
-    #[serde(default)]
-    pub performance: PerformanceSettings,
     #[serde(default, rename = "mcpServers")]
     pub mcp_servers: HashMap<String, McpServerConfig>,
 }
@@ -24,6 +22,7 @@ pub struct GeneralSettings {
     pub zoom: f64,
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -65,6 +64,8 @@ pub struct PerformanceSettings {
 >>>>>>> 5877c22 (restore)
 =======
 >>>>>>> ce2f600 (optimization)
+=======
+>>>>>>> 5877c22 (restore)
 fn default_true() -> bool {
     true
 }
