@@ -40,7 +40,6 @@ pub fn run() {
             ipc::window::switch_ln,
             ipc::window::update_title_bar_for_system_theme,
             ipc::window::get_language,
-            ipc::window::set_zoom,
             ipc::clipboard::read_clipboard_image,
             ipc::clipboard::save_clipboard_image_to_file,
             ipc::drop::get_file_metas,
