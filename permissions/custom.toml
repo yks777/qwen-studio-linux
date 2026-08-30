@@ -53,7 +53,8 @@ commands.allow = [
   "restart_app",
   "create_new_window",
   "read_clipboard_image",
-  "save_clipboard_image_to_file"
+  "save_clipboard_image_to_file",
+  "set_zoom"
 ]
 
 [[permission]]
