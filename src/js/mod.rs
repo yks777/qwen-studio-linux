@@ -1,6 +1,7 @@
 pub fn build_init_script() -> String {
     let pre_load_script = r#"
         (function() {
+            try { document.documentElement.style.backgroundColor = '#0f1115'; } catch (e) {}
             var hostname = window.location.hostname;
             var pathname = window.location.pathname;
             var isLoginPage = pathname.includes('login') || pathname.includes('auth') || pathname.includes('callback') || pathname.includes('oauth');
@@ -42,7 +43,14 @@ pub fn build_init_script() -> String {
         })();
     "#;
 
+    let debug_flag = if cfg!(debug_assertions) {
+        "window.__QWEN_DEBUG = true;"
+    } else {
+        "window.__QWEN_DEBUG = false;"
+    };
+
     let modules = [
+        debug_flag,
         pre_load_script,
         include_str!("core_bridge.js"),
         include_str!("platform_bridge.js"),

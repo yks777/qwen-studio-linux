@@ -51,7 +51,13 @@ pub struct Session {
 
 pub fn save_session(profile_id: &str, session: &Session) -> Result<(), String> {
     let path = session_file(profile_id);
-    let content = serde_json::to_string_pretty(session).map_err(|e| e.to_string())?;
+    let content = serde_json::to_string(session).map_err(|e| e.to_string())?;
+    // Dirty-check: só grava se conteúdo mudou, reduz I/O em idle
+    if let Ok(existing) = fs::read_to_string(&path) {
+        if existing == content {
+            return Ok(());
+        }
+    }
     let tmp = path.with_extension(format!("session.json.tmp.{}", std::process::id()));
     fs::write(&tmp, &content).map_err(|e| e.to_string())?;
     fs::rename(&tmp, &path).map_err(|e| e.to_string())
@@ -74,7 +80,12 @@ pub fn load() -> Vec<Profile> {
 
 fn save(profiles: &[Profile]) -> Result<(), String> {
     let path = profiles_file();
-    let content = serde_json::to_string_pretty(profiles).map_err(|e| e.to_string())?;
+    let content = serde_json::to_string(profiles).map_err(|e| e.to_string())?;
+    if let Ok(existing) = fs::read_to_string(&path) {
+        if existing == content {
+            return Ok(());
+        }
+    }
     let tmp = path.with_extension(format!("json.tmp.{}", std::process::id()));
     fs::write(&tmp, &content).map_err(|e| e.to_string())?;
     fs::rename(&tmp, &path).map_err(|e| e.to_string())

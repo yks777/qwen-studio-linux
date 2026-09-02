@@ -6,7 +6,12 @@ use super::schema::Settings;
 
 pub fn save(settings: &Settings) -> Result<(), String> {
     let path = paths::settings_file();
-    let content = serde_json::to_string_pretty(settings).map_err(|e| e.to_string())?;
+    let content = serde_json::to_string(settings).map_err(|e| e.to_string())?;
+    if let Ok(existing) = fs::read_to_string(&path) {
+        if existing == content {
+            return Ok(());
+        }
+    }
     let tmp = path.with_extension("json.tmp");
     fs::write(&tmp, &content).map_err(|e| e.to_string())?;
     fs::rename(&tmp, &path).map_err(|e| e.to_string())
@@ -30,7 +35,12 @@ pub fn load_raw() -> Value {
 
 pub fn save_raw(value: &Value) -> Result<(), String> {
     let path = paths::settings_file();
-    let content = serde_json::to_string_pretty(value).map_err(|e| e.to_string())?;
+    let content = serde_json::to_string(value).map_err(|e| e.to_string())?;
+    if let Ok(existing) = fs::read_to_string(&path) {
+        if existing == content {
+            return Ok(());
+        }
+    }
     let tmp = path.with_extension("json.tmp");
     fs::write(&tmp, &content).map_err(|e| e.to_string())?;
     fs::rename(&tmp, &path).map_err(|e| e.to_string())

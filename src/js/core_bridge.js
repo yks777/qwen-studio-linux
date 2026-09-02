@@ -110,5 +110,5 @@
         },
     };
 
-    console.log('[Qwem Studio] Bridge initialized');
+    if(window.__QWEN_DEBUG) console.log('[Qwem Studio] Bridge initialized');
 })();
