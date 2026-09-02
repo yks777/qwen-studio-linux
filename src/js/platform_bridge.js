@@ -289,10 +289,14 @@
         const dropAttempted = trySyntheticDrop(file, dt);
         if (dropAttempted) {
 <<<<<<< HEAD
+<<<<<<< HEAD
             if(window.__QWEN_DEBUG) console.log('[Qwen Studio] drop sintético (File object) disparado; tentando fallback <input>');
 =======
             console.log('[Qwen Studio] drop sintético (File object) disparado; tentando fallback <input>');
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
+=======
+            if(window.__QWEN_DEBUG) console.log('[Qwen Studio] drop sintético (File object) disparado; tentando fallback <input>');
+>>>>>>> 0f81055 (Melhorias)
         }
         const input = findFileInput();
         if (input) {
@@ -310,10 +314,14 @@
                 input.style.visibility = origVisibility;
                 input.hidden = origHidden;
 <<<<<<< HEAD
+<<<<<<< HEAD
                 if(window.__QWEN_DEBUG) console.log('[Qwen Studio] injected File object via <input> fallback:', file.name);
 =======
                 console.log('[Qwen Studio] injected File object via <input> fallback:', file.name);
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
+=======
+                if(window.__QWEN_DEBUG) console.log('[Qwen Studio] injected File object via <input> fallback:', file.name);
+>>>>>>> 0f81055 (Melhorias)
                 return true;
             } catch (err) {
                 console.warn('[Qwen Studio] input injection (File object) failed', err);
@@ -344,8 +352,12 @@
 =======
         const CHUNK = 4 * 1024 * 1024; // 4 MiB
         const parts = [];
+<<<<<<< HEAD
         console.log(`[Qwen Studio] iniciando transferência binária: ${name} (${size} bytes, mime=${mime})`);
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
+=======
+        if(window.__QWEN_DEBUG) console.log(`[Qwen Studio] iniciando transferência binária: ${name} (${size} bytes, mime=${mime})`);
+>>>>>>> 0f81055 (Melhorias)
         try {
             for (let off = 0; off < size; off += CHUNK) {
                 const len = Math.min(CHUNK, size - off);
@@ -378,10 +390,14 @@
             }
             const file = new File(parts, name || 'file', { type: mime || 'application/octet-stream' });
 <<<<<<< HEAD
+<<<<<<< HEAD
             if(window.__QWEN_DEBUG) console.log(`[Qwen Studio] File montado: ${file.name} ${file.size} bytes, injetando...`);
 =======
             console.log(`[Qwen Studio] File montado: ${file.name} ${file.size} bytes, injetando...`);
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
+=======
+            if(window.__QWEN_DEBUG) console.log(`[Qwen Studio] File montado: ${file.name} ${file.size} bytes, injetando...`);
+>>>>>>> 0f81055 (Melhorias)
             const ok = injectFileObject(file);
             if (!ok) console.warn('[Qwen Studio] injeção do File chunkado falhou:', name);
             return ok;
@@ -398,10 +414,14 @@
         __qwenDropQueue.push(...metas);
         if (__qwenDropping) {
 <<<<<<< HEAD
+<<<<<<< HEAD
             if(window.__QWEN_DEBUG) console.log('[Qwen Studio] drop enfileirado (já processando), fila:', __qwenDropQueue.length);
 =======
             console.log('[Qwen Studio] drop enfileirado (já processando), fila:', __qwenDropQueue.length);
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
+=======
+            if(window.__QWEN_DEBUG) console.log('[Qwen Studio] drop enfileirado (já processando), fila:', __qwenDropQueue.length);
+>>>>>>> 0f81055 (Melhorias)
             return;
         }
         __qwenDropping = true;
@@ -409,10 +429,14 @@
             const m = __qwenDropQueue.shift();
             try {
 <<<<<<< HEAD
+<<<<<<< HEAD
                 if(window.__QWEN_DEBUG) console.log('[Qwen Studio] processando drop:', m.name, m.size, 'bytes');
 =======
                 console.log('[Qwen Studio] processando drop:', m.name, m.size, 'bytes');
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
+=======
+                if(window.__QWEN_DEBUG) console.log('[Qwen Studio] processando drop:', m.name, m.size, 'bytes');
+>>>>>>> 0f81055 (Melhorias)
                 await injectLargeFile(m);
             } catch (e) {
                 console.error('[Qwen Studio] falha no drop:', m.name, e);
@@ -623,6 +647,7 @@
         try { return _nativeOpen(url, target, features); } catch(_) { return null; }
     };
 
+<<<<<<< HEAD
     // --- Find bar (Ctrl+F) — paridade navegador ---
     (function() {
         let findBar = null;
@@ -683,5 +708,7 @@
         window.__qwenFindClose = function() { if (findBar) findBar._close(); };
     })();
 
+=======
+>>>>>>> 0f81055 (Melhorias)
     if(window.__QWEN_DEBUG) console.log('[Qwem Studio] Platform bridge loaded');
 })();

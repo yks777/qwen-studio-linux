@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 pub use crate::js::build_init_script;
 =======
 pub fn build_init_script() -> String {
@@ -55,3 +56,6 @@ pub fn build_init_script() -> String {
     modules.join("\n\n")
 }
 >>>>>>> ce2f600 (optimization)
+=======
+pub use crate::js::build_init_script;
+>>>>>>> 0f81055 (Melhorias)

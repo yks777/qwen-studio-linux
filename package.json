@@ -6,11 +6,11 @@
   "scripts": {
     "tauri": "tauri",
     "build:frontend": "node scripts/build-frontend.mjs",
-    "tauri:dev": "WEBKIT_DISABLE_COMPOSITING_MODE=1 WEBKIT_DISABLE_DMABUF_RENDERER=1 tauri dev",
-    "tauri:build": "WEBKIT_DISABLE_COMPOSITING_MODE=1 WEBKIT_DISABLE_DMABUF_RENDERER=1 tauri build",
-    "tauri:build:deb": "WEBKIT_DISABLE_COMPOSITING_MODE=1 WEBKIT_DISABLE_DMABUF_RENDERER=1 tauri build --bundles deb",
-    "tauri:build:rpm": "WEBKIT_DISABLE_COMPOSITING_MODE=1 WEBKIT_DISABLE_DMABUF_RENDERER=1 tauri build --bundles rpm",
-    "tauri:build:appimage": "WEBKIT_DISABLE_COMPOSITING_MODE=1 WEBKIT_DISABLE_DMABUF_RENDERER=1 tauri build --bundles appimage"
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "tauri:build:deb": "tauri build --bundles deb",
+    "tauri:build:rpm": "tauri build --bundles rpm",
+    "tauri:build:appimage": "tauri build --bundles appimage"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2"

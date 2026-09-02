@@ -8,6 +8,7 @@ pub fn build_init_script() -> String {
         .get_or_init(|| {
             let pre_load_script = r#"
         (function() {
+            try { document.documentElement.style.backgroundColor = '#0f1115'; } catch (e) {}
             var hostname = window.location.hostname;
             var pathname = window.location.pathname;
             var isLoginPage = pathname.includes('login') || pathname.includes('auth') || pathname.includes('callback') || pathname.includes('oauth');
@@ -50,6 +51,7 @@ pub fn build_init_script() -> String {
         })();
     "#;
 
+<<<<<<< HEAD
             let debug_flag = if cfg!(debug_assertions) {
                 "window.__QWEN_DEBUG = true;"
             } else {
@@ -80,4 +82,20 @@ pub fn build_picker_init_script() -> String {
             [debug_flag, include_str!("core_bridge.js")].join("\n\n")
         })
         .clone()
+=======
+    let debug_flag = if cfg!(debug_assertions) {
+        "window.__QWEN_DEBUG = true;"
+    } else {
+        "window.__QWEN_DEBUG = false;"
+    };
+
+    let modules = [
+        debug_flag,
+        pre_load_script,
+        include_str!("core_bridge.js"),
+        include_str!("platform_bridge.js"),
+        include_str!("settings_injector.js"),
+    ];
+    modules.join("\n\n")
+>>>>>>> 0f81055 (Melhorias)
 }

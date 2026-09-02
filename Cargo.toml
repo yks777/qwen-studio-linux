@@ -53,5 +53,8 @@ lto = true
 codegen-units = 1
 panic = "abort"
 debug = 0
+<<<<<<< HEAD
 opt-level = "z"
 overflow-checks = false
+=======
+>>>>>>> 0f81055 (Melhorias)
