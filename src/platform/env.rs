@@ -37,14 +37,32 @@ pub fn configure_environment() {
         std::env::remove_var("WEBKIT_DISABLE_COMPOSITING_MODE");
     }
 
-    // DMABUF renderer desabilitado por padrão (workaround tela branca WebKitGTK <2.42)
-    // Permite override via QWEN_DISABLE_DMABUF_RENDERER=0 para testar GPU path.
-    let disable_dmabuf = std::env::var("QWEN_DISABLE_DMABUF_RENDERER")
-        .map(|v| !(v == "0" || v.eq_ignore_ascii_case("false")))
-        .unwrap_or(true);
+    // DMABUF: auto-detect WebKit >=2.42 usa GPU (economia CPU/bateria), <2.42 mantém CPU fallback para evitar tela branca.
+    // Override via QWEN_DISABLE_DMABUF_RENDERER=1 força CPU, =0 força GPU.
+    let disable_dmabuf = match std::env::var("QWEN_DISABLE_DMABUF_RENDERER") {
+        Ok(v) => !(v == "0" || v.eq_ignore_ascii_case("false")),
+        Err(_) => {
+            // Sem override explícito: auto-detect baseado na versão WebKit em runtime
+            // Wayland nativo pode ter issues com DMABUF, mantém fallback se wayland forçado
+            if use_wayland && has_wayland {
+                true
+            } else {
+                let (major, minor) = unsafe {
+                    (
+                        webkit2gtk::ffi::webkit_get_major_version(),
+                        webkit2gtk::ffi::webkit_get_minor_version(),
+                    )
+                };
+                // WebKit >=2.42 tem fix para DMABUF blank screen
+                !(major > 2 || (major == 2 && minor >= 42))
+            }
+        }
+    };
     if disable_dmabuf {
         std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+        log::info!("[Env] DMABUF renderer desabilitado (CPU fallback)");
     } else {
         std::env::remove_var("WEBKIT_DISABLE_DMABUF_RENDERER");
+        log::info!("[Env] DMABUF renderer habilitado (GPU)");
     }
 }

@@ -14,6 +14,8 @@ pub struct AppState {
     /// Label of the currently focused window (used as the "active" window).
     pub last_focused: Arc<RwLock<Option<String>>>,
     pub session_capture_running: Arc<AtomicBool>,
+    /// Last session hash per profile (cookies len + localStorage hash) to skip IPC when unchanged.
+    pub last_session_hash: Arc<tokio::sync::Mutex<HashMap<String, u64>>>,
 }
 
 impl AppState {
@@ -24,6 +26,7 @@ impl AppState {
             window_profiles: Arc::new(RwLock::new(HashMap::new())),
             last_focused: Arc::new(RwLock::new(None)),
             session_capture_running: Arc::new(AtomicBool::new(false)),
+            last_session_hash: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
         }
     }
 }

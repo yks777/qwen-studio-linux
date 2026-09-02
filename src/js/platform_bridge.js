@@ -258,6 +258,11 @@
     let __qwenDropping = false;
 
     async function injectLargeFile({ path, name, mime, size }) {
+        const MAX_SIZE = 100 * 1024 * 1024; // 100 MiB limite (economia RAM) — window_utils.rs também filtra
+        if (size > MAX_SIZE) {
+            console.warn(`[Qwen Studio] arquivo ignorado, excede 100 MiB: ${name} (${size} bytes)`);
+            return false;
+        }
         const CHUNK = 4 * 1024 * 1024; // 4 MiB
         const parts = [];
         if(window.__QWEN_DEBUG) console.log(`[Qwen Studio] iniciando transferência binária: ${name} (${size} bytes, mime=${mime})`);

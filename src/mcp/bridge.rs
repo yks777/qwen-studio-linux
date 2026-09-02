@@ -70,7 +70,15 @@ impl Bridge {
 
         let (tx, rx) = tokio::sync::oneshot::channel();
         {
-            self.pending.lock().await.insert(id, tx);
+            let mut pending = self.pending.lock().await;
+            const MAX_PENDING: usize = 50;
+            if pending.len() >= MAX_PENDING {
+                return Err(anyhow::anyhow!(
+                    "Too many pending MCP calls ({}), throttled",
+                    pending.len()
+                ));
+            }
+            pending.insert(id, tx);
         }
         if let Err(e) = {
             let mut stdin = self.stdin.lock().await;

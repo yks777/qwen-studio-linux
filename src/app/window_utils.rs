@@ -38,7 +38,16 @@ pub fn attach_file_drop_handler(window: &WebviewWindow) {
                     }
                 };
                 let size = meta.len();
-                if size > 1024 * 1024 * 1024 {
+                const MAX_DROP_SIZE: u64 = 100 * 1024 * 1024; // 100 MiB limite para economia de RAM
+                if size > MAX_DROP_SIZE {
+                    log::warn!(
+                        "[drop] arquivo muito grande ignorado (limite 100 MiB): {:?} ({} bytes)",
+                        path,
+                        size
+                    );
+                    continue;
+                }
+                if size > 512 * 1024 * 1024 {
                     log::warn!(
                         "[drop] arquivo grande detectado: {:?} ({} bytes)",
                         path,

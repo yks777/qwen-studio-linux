@@ -7,9 +7,26 @@ use tauri::{AppHandle, Emitter, Manager};
 /// Guards against concurrent install runs (the update can be triggered from
 /// multiple windows at once, e.g. every profile webview).
 static INSTALLING: AtomicBool = AtomicBool::new(false);
+static LAST_MANUAL_CHECK: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
 
 #[tauri::command]
 pub async fn check_for_updates(app: AppHandle, silent: bool) -> Result<UpdateInfo, String> {
+    // Debounce manual checks to avoid GitHub API spam via menu (economia de rede/CPU)
+    if !silent {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+        let last = LAST_MANUAL_CHECK.load(Ordering::Relaxed);
+        if now.saturating_sub(last) < 60 && last != 0 {
+            let state = app.state::<AppState>();
+            let updates = state.updates.read().await;
+            if let Some(cached) = updates.get_cached().cloned() {
+                return Ok(cached);
+            }
+        }
+        LAST_MANUAL_CHECK.store(now, Ordering::Relaxed);
+    }
     let current = crate::config::schema::APP_VERSION;
 
     let (latest, notes, download_url) = match super::checker::fetch_latest_version().await {
@@ -76,11 +93,13 @@ pub async fn install_update_with_progress(app: AppHandle, url: String) -> Result
         return Err("Only https url allowed".into());
     }
 
-    let client = reqwest::Client::builder()
+    let client = super::checker::HTTP_CLIENT.clone();
+    let resp = client
+        .get(url.clone())
         .timeout(std::time::Duration::from_secs(120))
-        .build()
+        .send()
+        .await
         .map_err(|e| e.to_string())?;
-    let resp = client.get(url.clone()).send().await.map_err(|e| e.to_string())?;
     if !resp.status().is_success() {
         return Err(format!("Download failed: {}", resp.status()));
     }
@@ -118,9 +137,9 @@ pub async fn install_update_with_progress(app: AppHandle, url: String) -> Result
 
         if total > 0 {
             let progress = (downloaded as f64 / total as f64 * 100.0) as u32;
-            // throttle to 200ms or 1% change
+            // throttle to 1000ms (economia de wakes: 5/s → 1/s por janela)
             if progress != last_progress
-                && last_emit.elapsed() >= std::time::Duration::from_millis(200)
+                && last_emit.elapsed() >= std::time::Duration::from_millis(1000)
             {
                 last_progress = progress;
                 last_emit = tokio::time::Instant::now();

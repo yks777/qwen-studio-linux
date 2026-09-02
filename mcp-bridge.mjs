@@ -145,6 +145,8 @@ async function reconcileConfig(newConfigs) {
   // 2. Connect new servers, reconnect changed ones, leave unchanged alone.
   // Compare only functional fields (command/args/env/cwd) so metadata-only
   // pushes (e.g. added "source"/"from") don't tear down a live server.
+  // Paraleliza conexões para reduzir cold start 180s → ~60s (MCP permanece funcional).
+  const toConnect = [];
   for (const [name, cfg] of Object.entries(next)) {
     const existing = serverConfigs[name];
     const changed =
@@ -167,13 +169,20 @@ async function reconcileConfig(newConfigs) {
       registry.delete(name);
     }
 
-    try {
-      await establishConnection(name, cfg);
-      emitstderr(`(re)established: ${name}`);
-    } catch (err) {
-      emitstderr(`establish FAILED ${name}: ${err.message}`);
-    }
+    toConnect.push([name, cfg]);
   }
+
+  // Parallelize connections (limit concurrency implicit via Promise.all for 3 default servers)
+  await Promise.all(
+    toConnect.map(async ([name, cfg]) => {
+      try {
+        await establishConnection(name, cfg);
+        emitstderr(`(re)established: ${name}`);
+      } catch (err) {
+        emitstderr(`establish FAILED ${name}: ${err.message}`);
+      }
+    })
+  );
 
   Object.assign(serverConfigs, next);
   emitstderr(`reconcileConfig done: [${Object.keys(serverConfigs).join(",")}]`);
