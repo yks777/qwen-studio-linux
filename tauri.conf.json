@@ -10,7 +10,7 @@
   "app": {
     "withGlobalTauri": true,
     "security": {
-      "csp": null
+      "csp": "default-src 'self' https://chat.qwen.ai https://*.qwen.ai https://*.aliyun.com https://accounts.google.com https://oauth2.googleapis.com; script-src 'self' 'unsafe-inline' https://chat.qwen.ai; style-src 'self' 'unsafe-inline' https://chat.qwen.ai; img-src 'self' data: blob: https:; connect-src 'self' ipc: http://ipc.localhost https://chat.qwen.ai https://*.qwen.ai https://*.aliyun.com https://accounts.google.com https://oauth2.googleapis.com; font-src 'self' data: https:; object-src 'none'; base-uri 'self'"
     }
   },
   "bundle": {

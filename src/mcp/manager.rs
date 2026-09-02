@@ -53,7 +53,11 @@ impl McpManager {
         self.bridge.is_some()
     }
 
+    pub fn bridge_clone(&self) -> Option<Arc<Bridge>> {
+        self.bridge.as_ref().map(Arc::clone)
+    }
+
     pub fn config_eq(&self, other: &HashMap<String, McpServerConfig>) -> bool {
-        serde_json::to_string(&self.config).ok() == serde_json::to_string(other).ok()
+        self.config == *other
     }
 }

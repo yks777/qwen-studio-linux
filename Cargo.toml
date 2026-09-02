@@ -37,14 +37,15 @@ dirs = "5"
 url = "2"
 open = "5"
 base64 = "0.22"
-image = { version = "0.25", features = ["png"] }
+image = { version = "0.25", default-features = false, features = ["png"] }
 arboard = { version = "3", features = ["wayland-data-control"] }
 notify-rust = "4"
 gtk = { version = "0.18", package = "gtk" }
 glib = { version = "0.18", package = "glib" }
 log = "0.4"
-reqwest = { version = "0.12", features = ["json", "stream"] }
+reqwest = { version = "0.12", features = ["json", "stream", "rustls-tls"], default-features = false }
 futures-util = "0.3"
+futures = "0.3"
 
 [profile.release]
 strip = true
@@ -52,3 +53,5 @@ lto = true
 codegen-units = 1
 panic = "abort"
 debug = 0
+opt-level = "z"
+overflow-checks = false

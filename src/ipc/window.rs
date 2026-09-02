@@ -91,12 +91,15 @@ pub async fn open_external_link(app: tauri::AppHandle, url: String) -> Result<bo
     if !url.starts_with("http://") && !url.starts_with("https://") {
         return Ok(false);
     }
+    // Validate URL parses and host is not empty to avoid javascript: or data: tricks
+    let parsed = url::Url::parse(&url).map_err(|e| e.to_string())?;
+    if parsed.host_str().is_none() {
+        return Ok(false);
+    }
     if crate::auth::domains::is_auth_url(&url) {
         if let Some(w) = crate::app::window_utils::active_webview_window_async(&app).await {
-            let _ = w.eval(format!(
-                "window.location.href = '{}';",
-                url.replace('\'', "\\'")
-            ));
+            let js_url = serde_json::to_string(&url).map_err(|e| e.to_string())?;
+            let _ = w.eval(format!("window.location.href = {};", js_url));
             return Ok(true);
         }
     }

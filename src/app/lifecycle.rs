@@ -55,6 +55,8 @@ pub fn open_profile_picker(app: &AppHandle) -> Result<(), Box<dyn std::error::Er
         return Ok(());
     }
 
+    // Lightweight init script for picker (no heavy platform_bridge)
+    let picker_script = crate::js::build_picker_init_script();
     let window = tauri::WebviewWindowBuilder::new(
         app,
         "profile-picker",
@@ -67,6 +69,7 @@ pub fn open_profile_picker(app: &AppHandle) -> Result<(), Box<dyn std::error::Er
     .resizable(true)
     .decorations(true)
     .visible(false)
+    .initialization_script(&picker_script)
     .build()?;
 
     // Fallback: force-show the picker if the page's JS show() never fires,
@@ -201,9 +204,21 @@ pub async fn capture_all_sessions(app: &AppHandle) {
                 .map(|(label, p)| (label.clone(), p.id.clone()))
                 .collect()
         };
-        for (label, pid) in entries {
-            crate::profile::cookies::capture_session(app, &label, &pid).await;
-        }
+        // Parallel capture with timeout per session
+        let futures: Vec<_> = entries
+            .into_iter()
+            .map(|(label, pid)| {
+                let app = app.clone();
+                async move {
+                    let _ = tokio::time::timeout(
+                        std::time::Duration::from_secs(8),
+                        crate::profile::cookies::capture_session(&app, &label, &pid),
+                    )
+                    .await;
+                }
+            })
+            .collect();
+        futures::future::join_all(futures).await;
     }
 }
 
@@ -218,7 +233,7 @@ fn ensure_session_capture(app: &AppHandle) {
 
     let app = app.clone();
     tauri::async_runtime::spawn(async move {
-        let mut interval = tokio::time::interval(std::time::Duration::from_secs(60));
+        let mut interval = tokio::time::interval(std::time::Duration::from_secs(120));
         loop {
             interval.tick().await;
             let entries = {
@@ -233,27 +248,43 @@ fn ensure_session_capture(app: &AppHandle) {
                     None => Vec::new(),
                 }
             };
-            for (label, pid) in entries {
-                if app.get_webview_window(&label).is_none() {
-                    continue;
-                }
-                crate::profile::cookies::capture_session(&app, &label, &pid).await;
+            if entries.is_empty() {
+                continue;
             }
+            // Only capture focused window or all if few; throttle to avoid 2s sequential block
+            let futures: Vec<_> = entries
+                .into_iter()
+                .filter(|(label, _)| app.get_webview_window(label).is_some())
+                .map(|(label, pid)| {
+                    let app = app.clone();
+                    async move {
+                        let _ = tokio::time::timeout(
+                            std::time::Duration::from_secs(8),
+                            crate::profile::cookies::capture_session(&app, &label, &pid),
+                        )
+                        .await;
+                    }
+                })
+                .collect();
+            futures::future::join_all(futures).await;
         }
     });
 }
 
 fn check_system_prerequisites() {
-    if let Ok(status) = std::process::Command::new("gst-inspect-1.0")
-        .arg("autoaudiosink")
-        .stdout(std::process::Stdio::null())
-        .stderr(std::process::Stdio::null())
-        .status()
-    {
-        if !status.success() {
-            log::warn!("[System] GStreamer 'autoaudiosink' plugin not found");
+    // Run blocking check off the main thread with timeout to avoid stalling setup
+    std::thread::spawn(|| {
+        let result = std::process::Command::new("gst-inspect-1.0")
+            .arg("autoaudiosink")
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .status();
+        if let Ok(status) = result {
+            if !status.success() {
+                log::warn!("[System] GStreamer 'autoaudiosink' plugin not found");
+            }
         }
-    }
+    });
 }
 
 pub fn setup_single_instance(app: &AppHandle) {

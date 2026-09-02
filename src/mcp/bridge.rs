@@ -21,7 +21,8 @@ impl Bridge {
     pub async fn new(app: Option<&tauri::AppHandle>) -> Result<Self> {
         let bridge_path = resolve_bridge_path(app)?;
 
-        let mut child = Command::new("node")
+        let node_bin = resolve_node_bin();
+        let mut child = Command::new(node_bin)
             .arg(&bridge_path)
             .stdin(std::process::Stdio::piped())
             .stdout(std::process::Stdio::piped())
@@ -61,7 +62,7 @@ impl Bridge {
     }
 
     pub async fn send(&self, method: &str, params: serde_json::Value) -> Result<serde_json::Value> {
-        let id = self.request_id.fetch_add(1, Ordering::SeqCst);
+        let id = self.request_id.fetch_add(1, Ordering::Relaxed);
         log::debug!("[Bridge] send #{} method={}", id, method);
         let msg = serde_json::json!({ "id": id, "method": method, "params": params });
         let mut line = serde_json::to_string(&msg)?;
@@ -113,21 +114,31 @@ impl Bridge {
         let mut line = String::new();
         loop {
             line.clear();
+            // Cap line size to 10 MB to avoid OOM from malicious server
+            if line.capacity() > 10 * 1024 * 1024 {
+                line = String::with_capacity(4096);
+            }
             match reader.read_line(&mut line).await {
                 Ok(0) => {
                     Self::drain_pending(&pending).await;
                     return;
                 }
                 Ok(_) => {
+                    if line.len() > 10 * 1024 * 1024 {
+                        log::warn!("[Bridge] oversized line {} bytes, dropping", line.len());
+                        continue;
+                    }
                     let trimmed = line.trim();
                     if trimmed.is_empty() {
                         continue;
                     }
-                    if let Ok(msg) = serde_json::from_str::<serde_json::Value>(trimmed) {
-                        Self::dispatch_response(&pending, &msg).await;
+                    match serde_json::from_str::<serde_json::Value>(trimmed) {
+                        Ok(msg) => Self::dispatch_response(&pending, &msg).await,
+                        Err(e) => log::warn!("[Bridge] invalid JSON: {}", e),
                     }
                 }
-                Err(_) => {
+                Err(e) => {
+                    log::warn!("[Bridge] read_loop error: {}", e);
                     Self::drain_pending(&pending).await;
                     return;
                 }
@@ -179,7 +190,14 @@ impl Bridge {
                 Ok(_) => {
                     let t = line.trim();
                     if !t.is_empty() {
-                        log::debug!("[Bridge] {}", t);
+                        // Surface MCP errors even in release
+                        if t.to_ascii_lowercase().contains("error")
+                            || t.to_ascii_lowercase().contains("failed")
+                        {
+                            log::warn!("[Bridge] {}", t);
+                        } else {
+                            log::debug!("[Bridge] {}", t);
+                        }
                     }
                 }
                 Err(_) => break,
@@ -205,4 +223,19 @@ fn resolve_bridge_path(app: Option<&tauri::AppHandle>) -> Result<std::path::Path
     }
 
     Err(anyhow::anyhow!("MCP bridge not found"))
+}
+
+fn resolve_node_bin() -> String {
+    // Prefer 'node', fallback to 'nodejs' on some distros
+    if std::process::Command::new("node")
+        .arg("--version")
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .status()
+        .map(|s| s.success())
+        .unwrap_or(false)
+    {
+        return "node".into();
+    }
+    "nodejs".into()
 }

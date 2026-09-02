@@ -1,5 +1,5 @@
-#![allow(dead_code)]
-
+/// GTK CSS for the HeaderBar menubar (injected in `platform::menu::setup`).
+/// Ensures headerbar has visible height even on Wayland compact themes.
 pub const MENU_CSS: &str = r#"
 headerbar {
     padding: 0 8px;

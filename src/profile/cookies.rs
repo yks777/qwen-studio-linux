@@ -111,10 +111,15 @@ pub async fn capture_session(app: &AppHandle, window_label: &str, profile_id: &s
         return;
     }
 
-    let cookies = rx_cookies.await.unwrap_or_default();
-    let local_storage = rx_ls
+    let cookies = tokio::time::timeout(std::time::Duration::from_secs(5), rx_cookies)
         .await
         .ok()
+        .and_then(|r| r.ok())
+        .unwrap_or_default();
+    let local_storage = tokio::time::timeout(std::time::Duration::from_secs(5), rx_ls)
+        .await
+        .ok()
+        .and_then(|r| r.ok())
         .flatten()
         .and_then(|raw| serde_json::from_str::<Vec<[String; 2]>>(&raw).ok())
         .map(|entries| {
@@ -191,7 +196,7 @@ pub async fn restore_session(app: &AppHandle, window_label: &str, profile_id: &s
     });
 
     if result.is_ok() {
-        let _ = rx.await;
+        let _ = tokio::time::timeout(std::time::Duration::from_secs(10), rx).await;
     }
 }
 
