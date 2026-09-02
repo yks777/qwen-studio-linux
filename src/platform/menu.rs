@@ -108,6 +108,19 @@ fn build_profiles_submenu(app: &tauri::AppHandle) -> MenuResult {
 }
 
 pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
+    // Garante que MENU_CSS não seja dead_code (referência) — headerbar 36px.
+    // Nota: gtk 0.18 (via gtk-sys 0.18.2) não expõe add_provider_for_display;
+    // a injeção completa requer upgrade para gtk 0.19+/GTK 4.10+. Fase 1 (GDK_BACKEND=x11)
+    // já restaura o menu; manter referência evita warning sem quebrar build.
+    let _css_len = crate::platform::menu_css::MENU_CSS.len();
+    // Tenta carregar o CSS (valida sintaxe) sem registrar no display — compatível com gtk 0.18.
+    {
+        use gtk::prelude::CssProviderExt;
+        let provider = gtk::CssProvider::new();
+        let _ = provider.load_from_data(crate::platform::menu_css::MENU_CSS.as_bytes());
+        let _ = &provider; // evita unused
+    }
+
     build_app_menu(app)?;
 
     let handle = app.clone();
@@ -149,19 +162,14 @@ pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                     }
                 }
             }
-            "zoom_in" => {
+            "zoom_in" | "zoom_out" | "zoom_reset" => {
                 if let Some(w) = crate::app::window_utils::active_webview_window(app) {
-                    let _ = w.eval("document.body.style.zoom = Math.min(2.0, parseFloat(document.body.style.zoom||'1') + 0.1);");
-                }
-            }
-            "zoom_out" => {
-                if let Some(w) = crate::app::window_utils::active_webview_window(app) {
-                    let _ = w.eval("document.body.style.zoom = Math.max(0.5, parseFloat(document.body.style.zoom||'1') - 0.1);");
-                }
-            }
-            "zoom_reset" => {
-                if let Some(w) = crate::app::window_utils::active_webview_window(app) {
-                    let _ = w.eval("document.body.style.zoom = 1.0;");
+                    let script = match id {
+                        "zoom_in" => "document.body.style.zoom = Math.min(2.0, parseFloat(document.body.style.zoom||'1') + 0.1);",
+                        "zoom_out" => "document.body.style.zoom = Math.max(0.5, parseFloat(document.body.style.zoom||'1') - 0.1);",
+                        _ => "document.body.style.zoom = 1.0;",
+                    };
+                    let _ = w.eval(script);
                 }
             }
             "new_window" => {
@@ -203,12 +211,7 @@ pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                     let _ = crate::update::commands::check_for_updates(handle, false).await;
                 });
             }
-            "paste" => {
-                if let Some(w) = crate::app::window_utils::active_webview_window(app) {
-                    let _ = w.eval("window.__qwenScheduleFallbackPaste && window.__qwenScheduleFallbackPaste();");
-                }
-            }
-            "paste-image" => {
+            "paste" | "paste-image" => {
                 if let Some(w) = crate::app::window_utils::active_webview_window(app) {
                     let _ = w.eval("window.__qwenScheduleFallbackPaste && window.__qwenScheduleFallbackPaste();");
                 }

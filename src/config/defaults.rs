@@ -21,6 +21,8 @@ pub fn mcp_servers() -> HashMap<String, McpServerConfig> {
         },
     );
 
+    // Restrict Filesystem to Documents + Projects + /tmp by default (not whole home)
+    let documents = format!("{}/Documents", home);
     config.insert(
         "Filesystem".into(),
         McpServerConfig {
@@ -28,9 +30,9 @@ pub fn mcp_servers() -> HashMap<String, McpServerConfig> {
             args: vec![
                 "-y".into(),
                 "@modelcontextprotocol/server-filesystem".into(),
-                home,
-                "/tmp".into(),
+                documents,
                 projects,
+                "/tmp".into(),
             ],
             transport_type: Some("stdio".into()),
             ..Default::default()
@@ -60,6 +62,7 @@ pub fn normalize_mcp(
         let home = dirs::home_dir()
             .map(|p| p.to_string_lossy().to_string())
             .unwrap_or_else(|| "/tmp".into());
+        let documents = format!("{}/Documents", home);
         let projects = format!("{}/Projects", home);
 
         fs_config.args = fs_config
@@ -74,14 +77,13 @@ pub fn normalize_mcp(
             })
             .collect();
 
-        if !fs_config.args.iter().any(|a| a == &home) {
-            fs_config.args.push(home);
-        }
-        if !fs_config.args.iter().any(|a| a == &projects) {
-            fs_config.args.push(projects);
-        }
-        if !fs_config.args.iter().any(|a| a == "/tmp") {
-            fs_config.args.push("/tmp".into());
+        // Ensure at least one safe directory remains; don't auto-re-add home if user removed it
+        let has_safe_dir = fs_config.args.iter().any(|a| {
+            a == &documents || a == &projects || a == "/tmp" || a == &home
+        });
+        if !has_safe_dir {
+            // User removed all safe dirs — restore documents as minimal safe default
+            fs_config.args.push(documents);
         }
     }
     config

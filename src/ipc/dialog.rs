@@ -28,18 +28,32 @@ pub async fn request_file_access(
     return_file: Option<bool>,
 ) -> Result<serde_json::Value, String> {
     use tauri_plugin_dialog::DialogExt;
-    let (tx, rx) = std::sync::mpsc::channel();
+    if purpose.len() > 256 {
+        return Err("Purpose too long".into());
+    }
+    let (tx, rx) = tokio::sync::oneshot::channel();
     app.dialog().file().set_title(&purpose).pick_file(move |f| {
         let _ = tx.send(f.and_then(|f| f.as_path().map(|p| p.to_string_lossy().to_string())));
     });
     let path = rx
-        .recv()
+        .await
         .map_err(|e| e.to_string())?
         .ok_or("No file selected")?;
     let mut result = serde_json::json!({ "filePath": path });
     if return_file.unwrap_or(false) {
-        result["file"] =
-            serde_json::Value::String(std::fs::read_to_string(&path).map_err(|e| e.to_string())?);
+        let content = tokio::task::spawn_blocking({
+            let p = path.clone();
+            move || {
+                let meta = std::fs::metadata(&p).map_err(|e| e.to_string())?;
+                if meta.len() > 10 * 1024 * 1024 {
+                    return Err("File too large (10 MB limit)".to_string());
+                }
+                std::fs::read_to_string(&p).map_err(|e| e.to_string())
+            }
+        })
+        .await
+        .map_err(|e| e.to_string())??;
+        result["file"] = serde_json::Value::String(content);
     }
     Ok(result)
 }

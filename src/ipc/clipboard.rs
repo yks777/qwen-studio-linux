@@ -60,22 +60,65 @@ pub async fn read_clipboard_image(app: tauri::AppHandle) -> Result<String, Strin
 #[cfg(target_os = "linux")]
 #[tauri::command]
 pub async fn save_clipboard_image_to_file(app: tauri::AppHandle) -> Result<String, String> {
-    use base64::Engine;
-    // Reusa a mesma lógica de leitura (evita duplicar spawn_blocking)
-    let b64 = read_clipboard_image(app).await?;
-    let png = base64::engine::general_purpose::STANDARD
-        .decode(&b64)
-        .map_err(|e| format!("base64 decode failed: {}", e))?;
+    // Directly get PNG bytes without base64 round-trip
+    let png = read_clipboard_image_bytes(app).await?;
     let mut path = std::env::temp_dir();
     let ts = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_millis())
         .unwrap_or(0);
-    path.push(format!("qwen-clipboard-{}.png", ts));
+    let pid = std::process::id();
+    path.push(format!("qwen-clipboard-{}-{}.png", pid, ts));
+    // Restrict permissions to 0o600 where supported
     std::fs::write(&path, &png).map_err(|e| format!("write temp file failed: {}", e))?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600));
+    }
     path.to_str()
         .map(|s| s.to_string())
         .ok_or_else(|| "invalid temp path".to_string())
+}
+
+#[cfg(target_os = "linux")]
+async fn read_clipboard_image_bytes(app: tauri::AppHandle) -> Result<Vec<u8>, String> {
+    use image::codecs::png::PngEncoder;
+    use image::ColorType;
+    use image::ImageEncoder;
+    use log::warn;
+    use tauri_plugin_clipboard_manager::ClipboardExt;
+
+    tauri::async_runtime::spawn_blocking(move || {
+        let (width, height, rgba) = match app.clipboard().read_image() {
+            Ok(image) => (image.width(), image.height(), image.rgba().to_vec()),
+            Err(_) => {
+                let mut clipboard = arboard::Clipboard::new()
+                    .map_err(|e| format!("arboard init failed: {}", e))?;
+                let img = clipboard
+                    .get_image()
+                    .map_err(|e| format!("arboard read failed: {}", e))?;
+                if img.bytes.is_empty() {
+                    warn!("arboard returned an empty image");
+                }
+                (img.width as u32, img.height as u32, img.bytes.to_vec())
+            }
+        };
+        if width == 0 || height == 0 || rgba.is_empty() {
+            return Err("no image in clipboard".into());
+        }
+        if rgba.len() > 16 * 1024 * 1024 || (width as u64) * (height as u64) > 3840 * 2160 {
+            return Err("clipboard image too large".into());
+        }
+        let mut png = Vec::new();
+        let encoder = PngEncoder::new(&mut png);
+        encoder
+            .write_image(&rgba, width, height, ColorType::Rgba8.into())
+            .map_err(|e| format!("PNG encode failed: {}", e))?;
+        Ok::<Vec<u8>, String>(png)
+    })
+    .await
+    .map_err(|e| format!("Task join error: {}", e))?
 }
 
 #[cfg(not(target_os = "linux"))]

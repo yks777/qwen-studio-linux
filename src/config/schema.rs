@@ -23,7 +23,7 @@ fn default_true() -> bool {
     true
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct McpServerConfig {
     pub command: String,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]

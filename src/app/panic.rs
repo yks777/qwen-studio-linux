@@ -14,8 +14,9 @@ fn log_crash_to_file(info: &panic::PanicHookInfo) {
     let timestamp = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default()
-        .as_secs();
-    let log_file = log_dir.join(format!("crash-{}.log", timestamp));
+        .as_millis();
+    let pid = std::process::id();
+    let log_file = log_dir.join(format!("crash-{}-{}.log", timestamp, pid));
 
     // Payload can be &str or String — handle both.
     let message = if let Some(s) = info.payload().downcast_ref::<&str>() {
@@ -99,9 +100,35 @@ pub fn list_crash_logs() -> Vec<String> {
 }
 
 pub fn read_crash_log(filename: &str) -> Result<String, String> {
-    let path = get_crash_log_dir().join(filename);
-    if !path.exists() {
+    // Strict validation: only basename with .log, no path traversal
+    if filename.contains('/') || filename.contains('\\') || filename.contains("..") {
+        return Err("Invalid filename".into());
+    }
+    if !filename.ends_with(".log") {
+        return Err("Invalid filename extension".into());
+    }
+    // Ensure filename is alphanumeric + dash/underscore/dot only
+    if !filename
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == '.')
+    {
+        return Err("Invalid filename characters".into());
+    }
+    let dir = get_crash_log_dir();
+    let path = dir.join(filename);
+    // Canonicalize check to prevent symlink traversal
+    let canonical_dir = dir.canonicalize().unwrap_or(dir.clone());
+    let canonical_path = path.canonicalize().map_err(|_| "Crash log not found".to_string())?;
+    if !canonical_path.starts_with(&canonical_dir) {
+        return Err("Invalid path".into());
+    }
+    if !canonical_path.exists() {
         return Err("Crash log not found".into());
     }
-    std::fs::read_to_string(&path).map_err(|e| e.to_string())
+    // Size cap 5 MB to avoid OOM
+    let meta = std::fs::metadata(&canonical_path).map_err(|e| e.to_string())?;
+    if meta.len() > 5 * 1024 * 1024 {
+        return Err("Crash log too large".into());
+    }
+    std::fs::read_to_string(&canonical_path).map_err(|e| e.to_string())
 }

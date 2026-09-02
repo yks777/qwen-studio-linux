@@ -12,7 +12,9 @@ fn copy_dir(src: &Path, dst: &Path) {
             } else if let Some(ext) = path.extension() {
                 let ext = ext.to_string_lossy().to_lowercase();
                 if ext == "html" || ext == "css" || ext == "js" || ext == "json" {
-                    let _ = fs::copy(&path, &target);
+                    if let Err(e) = fs::copy(&path, &target) {
+                        eprintln!("copy {:?} -> {:?} failed: {}", path, target, e);
+                    }
                 }
             }
         }
@@ -20,9 +22,14 @@ fn copy_dir(src: &Path, dst: &Path) {
 }
 
 fn main() {
+    println!("cargo:rerun-if-changed=src/profile_picker/");
+    println!("cargo:rerun-if-changed=mcp-bridge.mjs");
+    println!("cargo:rerun-if-changed=build.rs");
     let src = Path::new("src/profile_picker");
     let dst = Path::new("dist/profile-picker");
     if src.exists() {
+        // Clean stale files
+        let _ = fs::remove_dir_all(dst);
         copy_dir(src, dst);
     }
     tauri_build::build()

@@ -9,6 +9,17 @@ pub async fn export_chat(
     messages: Vec<ChatMessage>,
     format: String,
 ) -> Result<String, String> {
+    if title.len() > 512 {
+        return Err("Title too long".into());
+    }
+    if messages.len() > 100_000 {
+        return Err("Too many messages".into());
+    }
+    // Content size cap: sum of message lengths
+    let total_len: usize = messages.iter().map(|m| m.content.len()).sum();
+    if total_len > 10 * 1024 * 1024 {
+        return Err("Export too large (10 MB limit)".into());
+    }
     let now = timestamp_now();
     let export = ChatExport {
         title: title.clone(),
@@ -37,7 +48,7 @@ pub async fn export_chat(
         ),
     };
 
-    let (tx, rx) = std::sync::mpsc::channel();
+    let (tx, rx) = tokio::sync::oneshot::channel();
     app.dialog()
         .file()
         .set_title("Export Chat")
@@ -48,10 +59,12 @@ pub async fn export_chat(
         });
 
     let path = rx
-        .recv()
+        .await
         .map_err(|e| e.to_string())?
         .ok_or("No file selected")?;
-    std::fs::write(&path, &content).map_err(|e| e.to_string())?;
+    tokio::fs::write(&path, &content)
+        .await
+        .map_err(|e| e.to_string())?;
     Ok(path)
 }
 
@@ -77,9 +90,9 @@ impl ChatExport {
             r#"<!DOCTYPE html><html><head><meta charset="UTF-8"><title>{}</title>
         <style>body{{font-family:sans-serif;max-width:800px;margin:auto;padding:20px;background:#1a1a1a;color:#e0e0e0;}}</style>
         </head><body><h1>{}</h1><p>Exported: {}</p><hr>{}</body></html>"#,
-            self.title,
-            self.title,
-            self.exported_at,
+            html_escape(&self.title),
+            html_escape(&self.title),
+            html_escape(&self.exported_at),
             self.messages
                 .iter()
                 .map(|m| {
@@ -107,10 +120,13 @@ fn html_escape(s: &str) -> String {
     s.replace('&', "&amp;")
         .replace('<', "&lt;")
         .replace('>', "&gt;")
+        .replace('"', "&quot;")
+        .replace('\'', "&#39;")
 }
 
 fn sanitize(name: &str) -> String {
-    name.chars()
+    let mut s: String = name
+        .chars()
         .map(|c| {
             if c.is_alphanumeric() || c == '-' || c == '_' || c == ' ' {
                 c
@@ -120,7 +136,18 @@ fn sanitize(name: &str) -> String {
         })
         .collect::<String>()
         .trim()
-        .replace(' ', "_")
+        .replace(' ', "_");
+    if s.is_empty() {
+        s = "chat".to_string();
+    }
+    if s.len() > 100 {
+        s.truncate(100);
+    }
+    // Avoid hidden files / dot only
+    if s.starts_with('.') {
+        s = format!("chat{}", s);
+    }
+    s
 }
 
 fn timestamp_now() -> String {
