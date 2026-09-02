@@ -1,5 +1,6 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 #![allow(dead_code)]
 
@@ -9,8 +10,9 @@
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 =======
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
+=======
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 use tauri::{Emitter, Listener};
-use tokio::sync::broadcast;
 
 const ALLOWED_EVENT_TYPES: &[&str] = &[
     "theme_changed",

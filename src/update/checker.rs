@@ -20,7 +20,11 @@ use std::sync::LazyLock;
 use std::time::Duration;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 pub static HTTP_CLIENT: LazyLock<reqwest::Client> = LazyLock::new(|| {
+=======
+static HTTP_CLIENT: LazyLock<reqwest::Client> = LazyLock::new(|| {
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 =======
 static HTTP_CLIENT: LazyLock<reqwest::Client> = LazyLock::new(|| {
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
@@ -29,7 +33,11 @@ static HTTP_CLIENT: LazyLock<reqwest::Client> = LazyLock::new(|| {
         .connect_timeout(Duration::from_secs(5))
         .user_agent("qwen-studio-linux")
 <<<<<<< HEAD
+<<<<<<< HEAD
         .pool_idle_timeout(Duration::from_secs(5))
+=======
+        .pool_idle_timeout(Duration::from_secs(30))
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 =======
         .pool_idle_timeout(Duration::from_secs(30))
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
@@ -42,6 +50,7 @@ pub async fn fetch_latest_version() -> Result<(String, String, Option<String>), 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     let resp = HTTP_CLIENT
 =======
     let client = reqwest::Client::new();
@@ -54,6 +63,9 @@ pub async fn fetch_latest_version() -> Result<(String, String, Option<String>), 
     let client = reqwest::Client::new();
     let resp = client
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
+=======
+    let resp = HTTP_CLIENT
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
         .get(url)
         .header("User-Agent", "qwen-studio-linux")
         .send()

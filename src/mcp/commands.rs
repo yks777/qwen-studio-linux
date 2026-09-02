@@ -101,6 +101,7 @@ pub async fn mcp_client_tool_call(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             serde_json::to_value(&params).map_err(|e| e.to_string())?,
 =======
             serde_json::to_value(&params).unwrap_or_default(),
@@ -111,6 +112,9 @@ pub async fn mcp_client_tool_call(
 =======
             serde_json::to_value(&params).unwrap_or_default(),
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
+=======
+            serde_json::to_value(&params).map_err(|e| e.to_string())?,
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
         )
         .await
         .map_err(|e| e.to_string());
@@ -201,6 +205,9 @@ pub async fn mcp_client_update_config(
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 =======
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
     // Do not merge back deleted servers: only insert qwen-core if this is initial setup (merged empty)
@@ -213,6 +220,7 @@ pub async fn mcp_client_update_config(
     } else if !had_qwen_core {
         // User explicitly removed qwen-core, respect choice — do not re-add
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     if let Some(qc) = crate::config::defaults::mcp_servers().get("qwen-core") {
         merged
@@ -224,6 +232,8 @@ pub async fn mcp_client_update_config(
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 =======
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
+=======
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
     }
 
     let merged = crate::config::defaults::normalize_mcp(merged);

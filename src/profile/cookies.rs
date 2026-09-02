@@ -132,7 +132,11 @@ pub async fn capture_session(app: &AppHandle, window_label: &str, profile_id: &s
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     let cookies = tokio::time::timeout(std::time::Duration::from_secs(2), rx_cookies)
+=======
+    let cookies = tokio::time::timeout(std::time::Duration::from_secs(5), rx_cookies)
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 =======
     let cookies = tokio::time::timeout(std::time::Duration::from_secs(5), rx_cookies)
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
@@ -141,7 +145,11 @@ pub async fn capture_session(app: &AppHandle, window_label: &str, profile_id: &s
         .and_then(|r| r.ok())
         .unwrap_or_default();
 <<<<<<< HEAD
+<<<<<<< HEAD
     let local_storage = tokio::time::timeout(std::time::Duration::from_secs(2), rx_ls)
+=======
+    let local_storage = tokio::time::timeout(std::time::Duration::from_secs(5), rx_ls)
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 =======
     let local_storage = tokio::time::timeout(std::time::Duration::from_secs(5), rx_ls)
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)

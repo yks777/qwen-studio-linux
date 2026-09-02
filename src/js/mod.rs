@@ -54,6 +54,9 @@ pub fn build_init_script() -> String {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 =======
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
             let debug_flag = if cfg!(debug_assertions) {
@@ -61,6 +64,7 @@ pub fn build_init_script() -> String {
             } else {
                 "window.__QWEN_DEBUG = false;"
             };
+<<<<<<< HEAD
 <<<<<<< HEAD
 
             let modules = [
@@ -107,6 +111,9 @@ pub fn build_picker_init_script() -> String {
 >>>>>>> 0f81055 (Melhorias)
 =======
 
+=======
+
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
             let modules = [
                 debug_flag,
                 pre_load_script,
@@ -131,5 +138,8 @@ pub fn build_picker_init_script() -> String {
             [debug_flag, include_str!("core_bridge.js")].join("\n\n")
         })
         .clone()
+<<<<<<< HEAD
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
+=======
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 }

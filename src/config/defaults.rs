@@ -24,6 +24,7 @@ pub fn mcp_servers() -> HashMap<String, McpServerConfig> {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     // Restrict Filesystem to Documents + Projects + /tmp by default (not whole home)
     let documents = format!("{}/Documents", home);
 =======
@@ -34,6 +35,10 @@ pub fn mcp_servers() -> HashMap<String, McpServerConfig> {
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 =======
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
+=======
+    // Restrict Filesystem to Documents + Projects + /tmp by default (not whole home)
+    let documents = format!("{}/Documents", home);
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
     config.insert(
         "Filesystem".into(),
         McpServerConfig {
@@ -44,6 +49,7 @@ pub fn mcp_servers() -> HashMap<String, McpServerConfig> {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 documents,
                 projects,
                 "/tmp".into(),
@@ -62,6 +68,11 @@ pub fn mcp_servers() -> HashMap<String, McpServerConfig> {
                 "/tmp".into(),
                 projects,
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
+=======
+                documents,
+                projects,
+                "/tmp".into(),
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
             ],
             transport_type: Some("stdio".into()),
             ..Default::default()
@@ -109,6 +120,9 @@ pub fn normalize_mcp(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 =======
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
         // Ensure at least one safe directory remains; don't auto-re-add home if user removed it
@@ -118,6 +132,7 @@ pub fn normalize_mcp(
         if !has_safe_dir {
             // User removed all safe dirs — restore documents as minimal safe default
             fs_config.args.push(documents);
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
@@ -136,6 +151,8 @@ pub fn normalize_mcp(
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 =======
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
+=======
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
         }
     }
     config

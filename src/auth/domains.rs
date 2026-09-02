@@ -41,6 +41,9 @@ pub fn is_auth_url(url: &str) -> bool {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 =======
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
     let Ok(parsed) = url::Url::parse(url) else {
@@ -73,6 +76,7 @@ pub fn is_auth_url(url: &str) -> bool {
     }
     true
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     AUTH_DOMAINS.iter().any(|d| url.contains(d)) || AUTH_PATHS.iter().any(|p| url.contains(p))
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
@@ -81,4 +85,6 @@ pub fn is_auth_url(url: &str) -> bool {
 =======
     AUTH_DOMAINS.iter().any(|d| url.contains(d)) || AUTH_PATHS.iter().any(|p| url.contains(p))
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
+=======
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 }

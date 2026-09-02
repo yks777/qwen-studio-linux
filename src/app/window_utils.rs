@@ -98,6 +98,9 @@ pub fn attach_file_drop_handler(window: &WebviewWindow) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 =======
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 fn resolve_focused_label(app: &tauri::AppHandle, try_sync: bool) -> Option<String> {
@@ -112,12 +115,15 @@ fn resolve_focused_label(app: &tauri::AppHandle, try_sync: bool) -> Option<Strin
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
 =======
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 =======
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
+=======
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 /// Returns the most relevant window to act on for window-scoped commands
 /// (zoom, devtools, reload, minimize, etc.).
 ///
@@ -128,6 +134,7 @@ fn resolve_focused_label(app: &tauri::AppHandle, try_sync: bool) -> Option<Strin
 /// Uses `try_read` instead of `blocking_read` so it never panics when called
 /// from a `tokio-rt-worker`.
 pub fn active_webview_window(app: &tauri::AppHandle) -> Option<WebviewWindow> {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -145,6 +152,11 @@ pub fn active_webview_window(app: &tauri::AppHandle) -> Option<WebviewWindow> {
                 }
             }
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
+=======
+    if let Some(label) = resolve_focused_label(app, true) {
+        if let Some(w) = app.get_webview_window(&label) {
+            return Some(w);
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 =======
     if let Some(label) = resolve_focused_label(app, true) {
         if let Some(w) = app.get_webview_window(&label) {

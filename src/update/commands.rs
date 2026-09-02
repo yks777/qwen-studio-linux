@@ -69,6 +69,7 @@ pub async fn check_for_updates(app: AppHandle, silent: bool) -> Result<UpdateInf
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         // No auto-install: user must explicitly click "Install" in Updates tab
 =======
         // Self-update: download + install automatically in the background.
@@ -91,6 +92,9 @@ pub async fn check_for_updates(app: AppHandle, silent: bool) -> Result<UpdateInf
             });
         }
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
+=======
+        // No auto-install: user must explicitly click "Install" in Updates tab
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 =======
         // No auto-install: user must explicitly click "Install" in Updates tab
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
@@ -120,6 +124,7 @@ pub async fn install_update_with_progress(app: AppHandle, url: String) -> Result
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     let client = super::checker::HTTP_CLIENT.clone();
     let resp = client
         .get(url.clone())
@@ -128,11 +133,16 @@ pub async fn install_update_with_progress(app: AppHandle, url: String) -> Result
         .await
         .map_err(|e| e.to_string())?;
 =======
+=======
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(120))
         .build()
         .map_err(|e| e.to_string())?;
     let resp = client.get(url.clone()).send().await.map_err(|e| e.to_string())?;
+<<<<<<< HEAD
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
+=======
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
     if !resp.status().is_success() {
         return Err(format!("Download failed: {}", resp.status()));
@@ -172,9 +182,15 @@ pub async fn install_update_with_progress(app: AppHandle, url: String) -> Result
         if total > 0 {
             let progress = (downloaded as f64 / total as f64 * 100.0) as u32;
 <<<<<<< HEAD
+<<<<<<< HEAD
             // throttle to 1000ms (economia de wakes: 5/s → 1/s por janela)
             if progress != last_progress
                 && last_emit.elapsed() >= std::time::Duration::from_millis(1000)
+=======
+            // throttle to 200ms or 1% change
+            if progress != last_progress
+                && last_emit.elapsed() >= std::time::Duration::from_millis(200)
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 =======
             // throttle to 200ms or 1% change
             if progress != last_progress
@@ -190,6 +206,7 @@ pub async fn install_update_with_progress(app: AppHandle, url: String) -> Result
                 .map_err(|e| e.to_string())?;
             }
         }
+<<<<<<< HEAD
 <<<<<<< HEAD
     }
     file.flush().await.map_err(|e| e.to_string())?;
@@ -219,6 +236,13 @@ pub async fn install_update_with_progress(app: AppHandle, url: String) -> Result
     INSTALLING.store(false, Ordering::SeqCst);
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
 =======
+    let result = super::installer::install_update(file_path).await;
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
+=======
+    }
+    file.flush().await.map_err(|e| e.to_string())?;
+    drop(file);
+
     let result = super::installer::install_update(file_path).await;
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
     result

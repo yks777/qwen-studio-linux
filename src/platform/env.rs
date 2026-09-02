@@ -4,6 +4,9 @@ pub fn configure_environment() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 =======
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
     // KDE Plasma: força x11 (XWayland) incondicional para wry/GTK exibir GtkMenuBar clássico.
@@ -31,6 +34,7 @@ pub fn configure_environment() {
             log::info!("[Env] Wayland detectado, GDK_BACKEND=x11 forçado (fix-error compat)");
         }
     }
+<<<<<<< HEAD
 <<<<<<< HEAD
 
     // Compositing: permite override via env var para evitar tela branca em drivers antigos.
@@ -111,6 +115,8 @@ pub fn configure_environment() {
     std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
 >>>>>>> 5877c22 (restore)
 =======
+=======
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 =======
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 
