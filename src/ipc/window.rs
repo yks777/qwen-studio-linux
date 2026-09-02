@@ -110,6 +110,7 @@ pub async fn open_external_link(app: tauri::AppHandle, url: String) -> Result<bo
     if !is_http && !is_mailto && !is_blob_data {
         return Ok(false);
     }
+<<<<<<< HEAD
     // Validação de host para http(s); mailto/blob/data não exigem host
     if is_http {
         let parsed = url::Url::parse(&url).map_err(|e| e.to_string())?;
@@ -136,6 +137,17 @@ pub async fn open_external_link(app: tauri::AppHandle, url: String) -> Result<bo
                 url.replace('\'', "\\'")
             ));
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
+=======
+    // Validate URL parses and host is not empty to avoid javascript: or data: tricks
+    let parsed = url::Url::parse(&url).map_err(|e| e.to_string())?;
+    if parsed.host_str().is_none() {
+        return Ok(false);
+    }
+    if crate::auth::domains::is_auth_url(&url) {
+        if let Some(w) = crate::app::window_utils::active_webview_window_async(&app).await {
+            let js_url = serde_json::to_string(&url).map_err(|e| e.to_string())?;
+            let _ = w.eval(format!("window.location.href = {};", js_url));
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
             return Ok(true);
         }
     }

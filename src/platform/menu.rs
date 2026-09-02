@@ -235,6 +235,7 @@ pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                 if let Some(w) = crate::app::window_utils::active_webview_window(app) {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                     // Persiste zoom em settings.json para paridade navegador (por origem)
                     let mut s = crate::config::store::load();
                     let cur = if s.general.zoom == 0.0 { 1.0 } else { s.general.zoom };
@@ -272,6 +273,14 @@ pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
 =======
                     let _ = w.eval("document.body.style.zoom = 1.0;");
 >>>>>>> 5877c22 (restore)
+=======
+                    let script = match id {
+                        "zoom_in" => "document.body.style.zoom = Math.min(2.0, parseFloat(document.body.style.zoom||'1') + 0.1);",
+                        "zoom_out" => "document.body.style.zoom = Math.max(0.5, parseFloat(document.body.style.zoom||'1') - 0.1);",
+                        _ => "document.body.style.zoom = 1.0;",
+                    };
+                    let _ = w.eval(script);
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
                 }
             }
             "new_window" => {

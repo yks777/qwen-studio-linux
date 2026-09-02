@@ -4,8 +4,13 @@ const MAIN_URL: &str = "https://chat.qwen.ai";
 
 pub fn is_allowed(url: &str) -> bool {
 <<<<<<< HEAD
+<<<<<<< HEAD
     // 1) chat.qwen.ai sempre permitido (host exato para evitar chat.qwen.ai.evil.com)
     if url.starts_with(MAIN_URL) {
+=======
+    if url.starts_with(MAIN_URL) {
+        // Ensure exact host chat.qwen.ai, not chat.qwen.ai.evil.com
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
         if let Ok(parsed) = url::Url::parse(url) {
             if let Some(host) = parsed.host_str() {
                 if host == "chat.qwen.ai" {
@@ -15,6 +20,7 @@ pub fn is_allowed(url: &str) -> bool {
         }
         return false;
     }
+<<<<<<< HEAD
     // 2) URLs de auth OAuth (Google/Aliyun) também sempre permitidas
     if is_auth_url_strict(url) {
         return true;
@@ -41,4 +47,7 @@ pub fn is_allowed(url: &str) -> bool {
 fn is_auth_url(url: &str) -> bool {
     AUTH_DOMAINS.iter().any(|d| url.contains(d)) || AUTH_PATHS.iter().any(|p| url.contains(p))
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
+=======
+    is_auth_url_strict(url)
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 }

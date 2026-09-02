@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 fn persist_zoom(zoom: f64) {
     let mut s = crate::config::store::load();
     let clamped = zoom.clamp(0.5, 3.0);
@@ -5,6 +6,8 @@ fn persist_zoom(zoom: f64) {
     let _ = crate::config::store::save(&s);
 }
 
+=======
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 fn apply_zoom(app: &tauri::AppHandle, script: &str) {
     if let Some(w) = crate::app::window_utils::active_webview_window(app) {
         if let Err(e) = w.eval(script) {
@@ -13,6 +16,7 @@ fn apply_zoom(app: &tauri::AppHandle, script: &str) {
     }
 }
 
+<<<<<<< HEAD
 fn current_zoom() -> f64 {
     let s = crate::config::store::load();
     if s.general.zoom == 0.0 {
@@ -22,6 +26,8 @@ fn current_zoom() -> f64 {
     }
 }
 
+=======
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 #[tauri::command]
 pub async fn handle_shortcut(app: tauri::AppHandle, action: String) -> Result<(), String> {
     match action.as_str() {
@@ -36,6 +42,7 @@ pub async fn handle_shortcut(app: tauri::AppHandle, action: String) -> Result<()
                 if let Err(e) = w.eval("location.reload();") {
                     log::warn!("[Shortcuts] reload eval failed: {}", e);
                 }
+<<<<<<< HEAD
             }
         }
         "hard_reload" => {
@@ -64,11 +71,14 @@ pub async fn handle_shortcut(app: tauri::AppHandle, action: String) -> Result<()
         "print" => {
             if let Some(w) = crate::app::window_utils::active_webview_window(&app) {
                 let _ = w.eval("window.print();");
+=======
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
             }
         }
         "devtools" => {
             let _ = super::window::toggle_hidden_devtools(app).await;
         }
+<<<<<<< HEAD
         "zoom_in" => {
 <<<<<<< HEAD
             let z = (current_zoom() + 0.1).clamp(0.5, 3.0);
@@ -105,6 +115,17 @@ pub async fn handle_shortcut(app: tauri::AppHandle, action: String) -> Result<()
             }
 >>>>>>> ce2f600 (optimization)
         }
+=======
+        "zoom_in" => apply_zoom(
+            &app,
+            "document.body.style.zoom = Math.min(2.0, parseFloat(document.body.style.zoom||'1') + 0.1);",
+        ),
+        "zoom_out" => apply_zoom(
+            &app,
+            "document.body.style.zoom = Math.max(0.5, parseFloat(document.body.style.zoom||'1') - 0.1);",
+        ),
+        "zoom_reset" => apply_zoom(&app, "document.body.style.zoom = 1.0;"),
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
         _ => {
             log::warn!("[Shortcuts] Unknown action: {}", action);
         }

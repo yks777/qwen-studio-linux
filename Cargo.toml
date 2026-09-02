@@ -54,7 +54,12 @@ codegen-units = 1
 panic = "abort"
 debug = 0
 <<<<<<< HEAD
+<<<<<<< HEAD
 opt-level = "z"
 overflow-checks = false
 =======
 >>>>>>> 0f81055 (Melhorias)
+=======
+opt-level = "z"
+overflow-checks = false
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)

@@ -37,15 +37,22 @@ pub async fn request_file_access(
     });
     let path = rx
 <<<<<<< HEAD
+<<<<<<< HEAD
         .await
 =======
         .recv()
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
+=======
+        .await
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
         .map_err(|e| e.to_string())?
         .ok_or("No file selected")?;
     let mut result = serde_json::json!({ "filePath": path });
     if return_file.unwrap_or(false) {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
         let content = tokio::task::spawn_blocking({
             let p = path.clone();
             move || {
@@ -59,10 +66,13 @@ pub async fn request_file_access(
         .await
         .map_err(|e| e.to_string())??;
         result["file"] = serde_json::Value::String(content);
+<<<<<<< HEAD
 =======
         result["file"] =
             serde_json::Value::String(std::fs::read_to_string(&path).map_err(|e| e.to_string())?);
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
+=======
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
     }
     Ok(result)
 }

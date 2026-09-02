@@ -76,9 +76,13 @@ pub fn open_profile_picker(app: &AppHandle) -> Result<(), Box<dyn std::error::Er
     .decorations(true)
     .visible(false)
 <<<<<<< HEAD
+<<<<<<< HEAD
     .initialization_script(&picker_script)
 =======
 >>>>>>> c0c2f30 (Fix: Upload medias e username)
+=======
+    .initialization_script(&picker_script)
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
     .build()?;
 
     // Fallback: force-show the picker if the page's JS show() never fires,
@@ -302,10 +306,14 @@ fn ensure_session_capture(app: &AppHandle) {
     let app = app.clone();
     tauri::async_runtime::spawn(async move {
 <<<<<<< HEAD
+<<<<<<< HEAD
         let mut interval = tokio::time::interval(std::time::Duration::from_secs(600));
 =======
         let mut interval = tokio::time::interval(std::time::Duration::from_secs(60));
 >>>>>>> 0f81055 (Melhorias)
+=======
+        let mut interval = tokio::time::interval(std::time::Duration::from_secs(120));
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
         loop {
             interval.tick().await;
             // Só captura janela focada para reduzir wakes em idle (economia de CPU/IO).
@@ -341,8 +349,15 @@ fn ensure_session_capture(app: &AppHandle) {
             if entries.is_empty() {
                 continue;
             }
+<<<<<<< HEAD
             let futures: Vec<_> = entries
                 .into_iter()
+=======
+            // Only capture focused window or all if few; throttle to avoid 2s sequential block
+            let futures: Vec<_> = entries
+                .into_iter()
+                .filter(|(label, _)| app.get_webview_window(label).is_some())
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
                 .map(|(label, pid)| {
                     let app = app.clone();
                     async move {

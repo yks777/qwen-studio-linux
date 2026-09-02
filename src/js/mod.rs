@@ -52,11 +52,15 @@ pub fn build_init_script() -> String {
     "#;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
             let debug_flag = if cfg!(debug_assertions) {
                 "window.__QWEN_DEBUG = true;"
             } else {
                 "window.__QWEN_DEBUG = false;"
             };
+<<<<<<< HEAD
 
             let modules = [
                 debug_flag,
@@ -98,4 +102,31 @@ pub fn build_picker_init_script() -> String {
     ];
     modules.join("\n\n")
 >>>>>>> 0f81055 (Melhorias)
+=======
+
+            let modules = [
+                debug_flag,
+                pre_load_script,
+                include_str!("core_bridge.js"),
+                include_str!("platform_bridge.js"),
+                include_str!("settings_injector.js"),
+            ];
+            modules.join("\n\n")
+        })
+        .clone()
+}
+
+/// Lightweight init script for profile picker (only core bridge, no clipboard/zoom/settings)
+pub fn build_picker_init_script() -> String {
+    PICKER_INIT_SCRIPT
+        .get_or_init(|| {
+            let debug_flag = if cfg!(debug_assertions) {
+                "window.__QWEN_DEBUG = true;"
+            } else {
+                "window.__QWEN_DEBUG = false;"
+            };
+            [debug_flag, include_str!("core_bridge.js")].join("\n\n")
+        })
+        .clone()
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 }

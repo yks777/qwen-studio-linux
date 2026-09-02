@@ -1,6 +1,9 @@
 pub fn configure_environment() {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
     // KDE Plasma: força x11 (XWayland) incondicional para wry/GTK exibir GtkMenuBar clássico.
     // Igual ao que funcionava em qwen-studio-linux-fix-error/src/platform/env.rs:2 (set_var x11).
     // Opt-in Wayland nativo só via QWEN_USE_WAYLAND=1 ou QWEN_FORCE_WAYLAND=1.
@@ -26,6 +29,7 @@ pub fn configure_environment() {
             log::info!("[Env] Wayland detectado, GDK_BACKEND=x11 forçado (fix-error compat)");
         }
     }
+<<<<<<< HEAD
 
     // Compositing: permite override via env var para evitar tela branca em drivers antigos.
     // QWEN_DISABLE_COMPOSITING=1 força CPU (seguro), =0 força GPU (mais rápido).
@@ -102,6 +106,8 @@ pub fn configure_environment() {
     std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
 >>>>>>> 5877c22 (restore)
 =======
+=======
+>>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 
     // Compositing: permite override via env var para evitar tela branca em drivers antigos.
     // QWEN_DISABLE_COMPOSITING=1 força CPU (seguro), =0 força GPU (mais rápido).
