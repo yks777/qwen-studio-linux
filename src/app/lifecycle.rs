@@ -316,6 +316,7 @@ fn ensure_session_capture(app: &AppHandle) {
     tauri::async_runtime::spawn(async move {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         let mut interval = tokio::time::interval(std::time::Duration::from_secs(600));
 =======
         let mut interval = tokio::time::interval(std::time::Duration::from_secs(60));
@@ -323,6 +324,9 @@ fn ensure_session_capture(app: &AppHandle) {
 =======
         let mut interval = tokio::time::interval(std::time::Duration::from_secs(120));
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
+=======
+        let mut interval = tokio::time::interval(std::time::Duration::from_secs(60));
+>>>>>>> 0f81055 (Melhorias)
         loop {
             interval.tick().await;
             // Só captura janela focada para reduzir wakes em idle (economia de CPU/IO).

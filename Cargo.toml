@@ -55,6 +55,7 @@ panic = "abort"
 debug = 0
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 opt-level = "z"
 overflow-checks = false
 =======
@@ -63,3 +64,5 @@ overflow-checks = false
 opt-level = "z"
 overflow-checks = false
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
+=======
+>>>>>>> 0f81055 (Melhorias)

@@ -14,6 +14,7 @@ pub fn save(settings: &Settings) -> Result<(), String> {
     }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
     let tmp = path.with_file_name(format!(
@@ -24,6 +25,8 @@ pub fn save(settings: &Settings) -> Result<(), String> {
     ));
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> 0f81055 (Melhorias)
     let tmp = path.with_extension("json.tmp");
 >>>>>>> 0f81055 (Melhorias)
 =======
@@ -64,6 +67,7 @@ pub fn save_raw(value: &Value) -> Result<(), String> {
     }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
     let tmp = path.with_file_name(format!(
@@ -74,6 +78,8 @@ pub fn save_raw(value: &Value) -> Result<(), String> {
     ));
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> 0f81055 (Melhorias)
     let tmp = path.with_extension("json.tmp");
 >>>>>>> 0f81055 (Melhorias)
 =======

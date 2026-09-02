@@ -53,6 +53,7 @@ pub fn build_init_script() -> String {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
             let debug_flag = if cfg!(debug_assertions) {
@@ -87,6 +88,8 @@ pub fn build_picker_init_script() -> String {
         })
         .clone()
 =======
+=======
+>>>>>>> 0f81055 (Melhorias)
     let debug_flag = if cfg!(debug_assertions) {
         "window.__QWEN_DEBUG = true;"
     } else {
