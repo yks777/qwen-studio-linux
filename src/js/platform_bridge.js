@@ -130,18 +130,18 @@
     function trySyntheticDrop(file, dt) {
         const target = findComposerDropTarget();
         if (!target || target === document.body) {
-            console.log('[Qwen Studio] drop: nenhum container de composer encontrado, pulando drop sintético');
+            if(window.__QWEN_DEBUG) console.log('[Qwen Studio] drop: nenhum container de composer encontrado, pulando drop sintético');
             return false;
         }
         try {
             const tag = (target.tagName || '').toLowerCase();
             const cls = (target.className && typeof target.className === 'string')
                 ? target.className.slice(0, 60) : '';
-            console.log(`[Qwen Studio] drop: alvo encontrado <${tag} class="${cls}">, disparando dragenter/dragover/drop`);
+            if(window.__QWEN_DEBUG) console.log(`[Qwen Studio] drop: alvo encontrado <${tag} class="${cls}">, disparando dragenter/dragover/drop`);
             target.dispatchEvent(new DragEvent('dragenter', { bubbles: true, cancelable: true, dataTransfer: dt }));
             target.dispatchEvent(new DragEvent('dragover',  { bubbles: true, cancelable: true, dataTransfer: dt }));
             const dropOk = target.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: dt }));
-            console.log('[Qwen Studio] drop sintético disparado (resultado:', dropOk, ')');
+            if(window.__QWEN_DEBUG) console.log('[Qwen Studio] drop sintético disparado (resultado:', dropOk, ')');
             return true;
         } catch (err) {
             console.warn('[Qwen Studio] drop sintético falhou:', err);
@@ -172,7 +172,7 @@
             // com isTrusted=false. Em paralelo tentamos o fallback via input
             // para maximizar a chance — se um funcionar, ótimo. O input
             // fallback é silencioso (não conflita com o drop).
-            console.log('[Qwen Studio] drop sintético disparado; tentando também fallback <input> em paralelo');
+            if(window.__QWEN_DEBUG) console.log('[Qwen Studio] drop sintético disparado; tentando também fallback <input> em paralelo');
         }
 
         // 2) Fallback (ou tentativa paralela): injetar via <input type=file>
@@ -200,7 +200,7 @@
                 input.style.visibility = origVisibility;
                 input.hidden = origHidden;
 
-                console.log('[Qwen Studio] injected image via <input type=file> fallback:', fileName, input);
+                if(window.__QWEN_DEBUG) console.log('[Qwen Studio] injected image via <input type=file> fallback:', fileName, input);
                 return true;
             } catch (err) {
                 console.warn('[Qwen Studio] input injection failed', err);
@@ -222,7 +222,7 @@
         dt.items.add(file);
         const dropAttempted = trySyntheticDrop(file, dt);
         if (dropAttempted) {
-            console.log('[Qwen Studio] drop sintético (File object) disparado; tentando fallback <input>');
+            if(window.__QWEN_DEBUG) console.log('[Qwen Studio] drop sintético (File object) disparado; tentando fallback <input>');
         }
         const input = findFileInput();
         if (input) {
@@ -239,7 +239,7 @@
                 input.style.display = origDisplay;
                 input.style.visibility = origVisibility;
                 input.hidden = origHidden;
-                console.log('[Qwen Studio] injected File object via <input> fallback:', file.name);
+                if(window.__QWEN_DEBUG) console.log('[Qwen Studio] injected File object via <input> fallback:', file.name);
                 return true;
             } catch (err) {
                 console.warn('[Qwen Studio] input injection (File object) failed', err);
@@ -260,7 +260,7 @@
     async function injectLargeFile({ path, name, mime, size }) {
         const CHUNK = 4 * 1024 * 1024; // 4 MiB
         const parts = [];
-        console.log(`[Qwen Studio] iniciando transferência binária: ${name} (${size} bytes, mime=${mime})`);
+        if(window.__QWEN_DEBUG) console.log(`[Qwen Studio] iniciando transferência binária: ${name} (${size} bytes, mime=${mime})`);
         try {
             for (let off = 0; off < size; off += CHUNK) {
                 const len = Math.min(CHUNK, size - off);
@@ -292,7 +292,7 @@
                 }
             }
             const file = new File(parts, name || 'file', { type: mime || 'application/octet-stream' });
-            console.log(`[Qwen Studio] File montado: ${file.name} ${file.size} bytes, injetando...`);
+            if(window.__QWEN_DEBUG) console.log(`[Qwen Studio] File montado: ${file.name} ${file.size} bytes, injetando...`);
             const ok = injectFileObject(file);
             if (!ok) console.warn('[Qwen Studio] injeção do File chunkado falhou:', name);
             return ok;
@@ -308,14 +308,14 @@
         if (!Array.isArray(metas) || metas.length === 0) return;
         __qwenDropQueue.push(...metas);
         if (__qwenDropping) {
-            console.log('[Qwen Studio] drop enfileirado (já processando), fila:', __qwenDropQueue.length);
+            if(window.__QWEN_DEBUG) console.log('[Qwen Studio] drop enfileirado (já processando), fila:', __qwenDropQueue.length);
             return;
         }
         __qwenDropping = true;
         while (__qwenDropQueue.length > 0) {
             const m = __qwenDropQueue.shift();
             try {
-                console.log('[Qwen Studio] processando drop:', m.name, m.size, 'bytes');
+                if(window.__QWEN_DEBUG) console.log('[Qwen Studio] processando drop:', m.name, m.size, 'bytes');
                 await injectLargeFile(m);
             } catch (e) {
                 console.error('[Qwen Studio] falha no drop:', m.name, e);
@@ -423,7 +423,7 @@
 
             // 1) Tenta imagem (PrintScreen / Copiar imagem)
             if (imageB64) {
-                console.log('[Qwen Studio] imagem lida do clipboard (Rust), injetando...', imageB64.substring(0, 32) + '...');
+                if(window.__QWEN_DEBUG) console.log('[Qwen Studio] imagem lida do clipboard (Rust), injetando...', imageB64.substring(0, 32) + '...');
                 if (window.__qwenInjectFile(imageB64, 'image/png', 'pasted-image.png')) return;
                 console.warn('[Qwen Studio] imagem lida, mas a injeção falhou — tentando texto');
             }
@@ -433,7 +433,7 @@
                 if (savedActiveElement && savedActiveElement !== document.body) {
                     try { savedActiveElement.focus(); } catch (_) {}
                 }
-                console.log('[Qwen Studio] texto lido do clipboard, inserindo no cursor');
+                if(window.__QWEN_DEBUG) console.log('[Qwen Studio] texto lido do clipboard, inserindo no cursor');
                 insertTextAtCursorRobust(text);
             }
         } finally {
@@ -467,10 +467,10 @@
                 : (ae.innerText || '');
             // Se o campo já mudou, o site colou com sucesso — não injeta.
             if (after !== before) {
-                console.log('[Qwen Studio] paste nativo do site detectado — fallback ignorado');
+                if(window.__QWEN_DEBUG) console.log('[Qwen Studio] paste nativo do site detectado — fallback ignorado');
                 return;
             }
-            console.log('[Qwen Studio] paste nativo não agiu — disparando fallback Rust');
+            if(window.__QWEN_DEBUG) console.log('[Qwen Studio] paste nativo não agiu — disparando fallback Rust');
             window.__qwenHandlePaste();
         }, FALLBACK_DELAY_MS);
     };
@@ -495,5 +495,5 @@
         return null;
     };
 
-    console.log('[Qwem Studio] Platform bridge loaded');
+    if(window.__QWEN_DEBUG) console.log('[Qwem Studio] Platform bridge loaded');
 })();

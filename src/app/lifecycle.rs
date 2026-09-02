@@ -43,10 +43,6 @@ pub fn initialize(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         });
     }
 
-    tauri::async_runtime::spawn(async move {
-        check_system_prerequisites();
-    });
-
     let _ = open_profile_picker(app.handle());
 
     Ok(())
@@ -222,7 +218,7 @@ fn ensure_session_capture(app: &AppHandle) {
 
     let app = app.clone();
     tauri::async_runtime::spawn(async move {
-        let mut interval = tokio::time::interval(std::time::Duration::from_secs(15));
+        let mut interval = tokio::time::interval(std::time::Duration::from_secs(60));
         loop {
             interval.tick().await;
             let entries = {

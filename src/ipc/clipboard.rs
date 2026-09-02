@@ -33,6 +33,11 @@ pub async fn read_clipboard_image(app: tauri::AppHandle) -> Result<String, Strin
             return Err("no image in clipboard".into());
         }
 
+        // Limite anti-freeze: evita travar ao ler screenshot 4K gigante
+        if rgba.len() > 16 * 1024 * 1024 || (width as u64) * (height as u64) > 3840 * 2160 {
+            return Err("clipboard image too large".into());
+        }
+
         let mut png = Vec::new();
         {
             let encoder = PngEncoder::new(&mut png);

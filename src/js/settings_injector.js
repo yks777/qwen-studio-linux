@@ -316,5 +316,5 @@
         maybeInject();
     }
 
-    console.log('[Qwen Studio] Settings injector loaded');
+    if(window.__QWEN_DEBUG) console.log('[Qwen Studio] Settings injector loaded');
 })();
