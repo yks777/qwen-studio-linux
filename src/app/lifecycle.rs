@@ -169,12 +169,26 @@ pub fn open_profile_window(
     .initialization_script(&init_script)
     .enable_clipboard_access()
     .on_navigation(|url| crate::webview::navigation::is_allowed(url.as_ref()))
-    .on_page_load(move |w, payload| {
-        if payload.event() == PageLoadEvent::Finished && !restored.swap(true, Ordering::SeqCst) {
-            if let Some(session) = manager::load_session(&pid) {
-                if !session.local_storage.is_empty() {
-                    let js = crate::profile::cookies::restore_local_storage_js(&session);
+    .on_page_load({
+        let pid_clone = pid.clone();
+        move |w, payload| {
+            if payload.event() == PageLoadEvent::Finished {
+                // Restaura zoom persistido (paridade navegador por origem)
+                let zoom = crate::config::store::load().general.zoom;
+                if zoom != 0.0 && (zoom - 1.0).abs() > f64::EPSILON {
+                    let js = format!(
+                        "document.documentElement.style.zoom='{}'; document.body.style.zoom='{}';",
+                        zoom, zoom
+                    );
                     let _ = w.eval(js);
+                }
+                if !restored.swap(true, Ordering::SeqCst) {
+                    if let Some(session) = manager::load_session(&pid_clone) {
+                        if !session.local_storage.is_empty() {
+                            let js = crate::profile::cookies::restore_local_storage_js(&session);
+                            let _ = w.eval(js);
+                        }
+                    }
                 }
             }
         }

@@ -8,12 +8,13 @@ pub fn build_init_script() -> String {
         .get_or_init(|| {
             let pre_load_script = r#"
         (function() {
-            try { document.documentElement.style.backgroundColor = '#0f1115'; } catch (e) {}
             var hostname = window.location.hostname;
             var pathname = window.location.pathname;
             var isLoginPage = pathname.includes('login') || pathname.includes('auth') || pathname.includes('callback') || pathname.includes('oauth');
             if (hostname !== 'chat.qwen.ai' || isLoginPage) return;
             try {
+                var raw = localStorage.getItem("LOCAL_MCP_SERVER");
+                if (raw && raw.length > 1000000) return;
                 var qwenCoreEntry = {
                     id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
                     name: "qwen-core",
@@ -28,7 +29,6 @@ pub fn build_init_script() -> String {
                 };
                 var existing = null;
                 try {
-                    var raw = localStorage.getItem("LOCAL_MCP_SERVER");
                     if (raw) { existing = JSON.parse(raw); if (!Array.isArray(existing)) existing = null; }
                 } catch(e) { existing = null; }
                 if (existing && existing.length > 0) {

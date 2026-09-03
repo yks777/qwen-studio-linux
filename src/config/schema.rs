@@ -17,6 +17,13 @@ pub struct GeneralSettings {
     pub check_updates: bool,
     #[serde(default)]
     pub theme: String,
+    /// Zoom level persistido por origem (1.0 = 100%), clamp 0.5..3.0
+    #[serde(default = "default_zoom")]
+    pub zoom: f64,
+}
+
+fn default_zoom() -> f64 {
+    1.0
 }
 
 <<<<<<< HEAD

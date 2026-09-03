@@ -31,6 +31,18 @@ pub async fn create_new_window(app: tauri::AppHandle) -> Result<String, String> 
 
     let window = builder.build().map_err(|e| e.to_string())?;
 
+    // Aplica zoom persistido
+    {
+        let zoom = crate::config::store::load().general.zoom;
+        if zoom != 0.0 && (zoom - 1.0).abs() > f64::EPSILON {
+            let js = format!(
+                "document.documentElement.style.zoom='{}'; document.body.style.zoom='{}';",
+                zoom, zoom
+            );
+            let _ = window.eval(js);
+        }
+    }
+
     crate::app::window_utils::attach_file_drop_handler(&window);
 
     Ok(label)
@@ -88,13 +100,27 @@ pub async fn toggle_hidden_devtools(app: tauri::AppHandle) -> Result<bool, Strin
 
 #[tauri::command]
 pub async fn open_external_link(app: tauri::AppHandle, url: String) -> Result<bool, String> {
-    if !url.starts_with("http://") && !url.starts_with("https://") {
+    // Aceita http(s) + mailto/blob/data para paridade navegador; javascript: continua bloqueado
+    let is_http = url.starts_with("http://") || url.starts_with("https://");
+    let is_mailto = url.starts_with("mailto:");
+    let is_blob_data = url.starts_with("blob:") || url.starts_with("data:");
+    if !is_http && !is_mailto && !is_blob_data {
         return Ok(false);
     }
-    // Validate URL parses and host is not empty to avoid javascript: or data: tricks
-    let parsed = url::Url::parse(&url).map_err(|e| e.to_string())?;
-    if parsed.host_str().is_none() {
-        return Ok(false);
+    // Validação de host para http(s); mailto/blob/data não exigem host
+    if is_http {
+        let parsed = url::Url::parse(&url).map_err(|e| e.to_string())?;
+        if parsed.host_str().is_none() {
+            return Ok(false);
+        }
+    } else if is_blob_data {
+        // blob:/data: já validados pelo prefixo; deixa o navegador/OS decidir
+        // Se vier de window.open, abre no OS browser como fallback
+        let _ = open::that(&url);
+        return Ok(true);
+    } else if is_mailto {
+        let _ = open::that(&url);
+        return Ok(true);
     }
     if crate::auth::domains::is_auth_url(&url) {
         if let Some(w) = crate::app::window_utils::active_webview_window_async(&app).await {

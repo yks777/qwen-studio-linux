@@ -19,7 +19,16 @@
         }
     });
 
-    window.electronAPI = {
+    const mcpApi = {
+        mcp_client_connect: () => invoke('mcp_client_connect'),
+        mcp_client_close: () => invoke('mcp_client_close'),
+        mcp_client_tool_list: (serverName) => invoke('mcp_client_tool_list', { params: { serverName } }),
+        mcp_client_tool_call: (params) => invoke('mcp_client_tool_call', { params }),
+        mcp_client_get_config: () => invoke('mcp_client_get_config'),
+        mcp_client_update_config: (config) => invoke('mcp_client_update_config', { config }),
+    };
+
+    const electronAPI = {
         PRELOAD_FILE_PATH: '',
         minimize: () => invoke('minimize_window'),
         maximize: () => invoke('maximize_window'),
@@ -46,12 +55,7 @@
         send_event: function(data) {
             window.__TAURI__?.event?.emit('event_to_main', data);
         },
-        mcp_client_connect: () => invoke('mcp_client_connect'),
-        mcp_client_close: () => invoke('mcp_client_close'),
-        mcp_client_tool_list: (serverName) => invoke('mcp_client_tool_list', { params: { serverName } }),
-        mcp_client_tool_call: (params) => invoke('mcp_client_tool_call', { params }),
-        mcp_client_get_config: () => invoke('mcp_client_get_config'),
-        mcp_client_update_config: (config) => invoke('mcp_client_update_config', { config }),
+        ...mcpApi,
         check_for_updates: (silent) => invoke('check_for_updates', { silent: silent ?? false }),
         install_update_with_progress: (url) => invoke('install_update_with_progress', { url }),
         restart_app: () => invoke('restart_app'),
@@ -61,7 +65,27 @@
         read_crash_log: (filename) => invoke('read_crash_log', { filename }),
     };
 
-    window.electron = {
+    // Exposição principal browser-like: window.qwenStudio (non-enumerable)
+    try {
+        Object.defineProperty(window, 'qwenStudio', {
+            value: { mcp: mcpApi, api: electronAPI },
+            writable: false,
+            enumerable: false,
+            configurable: true,
+        });
+    } catch(_) { window.qwenStudio = { mcp: mcpApi, api: electronAPI }; }
+
+    // Compatibilidade legada: window.electronAPI como getter non-enumerable
+    // chat.qwen.ai testa 'electronAPI' in window — mantém mas esconde de enumeration
+    try {
+        Object.defineProperty(window, 'electronAPI', {
+            get: () => electronAPI,
+            enumerable: false,
+            configurable: true,
+        });
+    } catch(_) { window.electronAPI = electronAPI; }
+
+    const electron = {
         ipcRenderer: {
             on: (channel, callback) => {
                 window.__TAURI__.event.listen('event_from_main', (event) => {
@@ -76,6 +100,15 @@
             invoke: (command, ...args) => invoke(command, ...args),
         },
     };
+
+    try {
+        Object.defineProperty(window, 'electron', {
+            value: electron,
+            writable: false,
+            enumerable: false,
+            configurable: true,
+        });
+    } catch(_) { window.electron = electron; }
 
     // Best-effort Electron clipboard shim so chat.qwen.ai's own Electron-API
     // calls resolve. `read_clipboard_image` returns base64 PNG, which we wrap in

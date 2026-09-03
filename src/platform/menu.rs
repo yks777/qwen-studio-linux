@@ -34,12 +34,56 @@ pub fn build_app_menu(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::
         .build()?;
 
     let view_menu = SubmenuBuilder::new(app, "View")
-        .item(&MenuItemBuilder::with_id("reload", "Reload").build(app)?)
+        .item(
+            &MenuItemBuilder::with_id("go_back", "Back")
+                .accelerator("Alt+Left")
+                .build(app)?,
+        )
+        .item(
+            &MenuItemBuilder::with_id("go_forward", "Forward")
+                .accelerator("Alt+Right")
+                .build(app)?,
+        )
+        .separator()
+        .item(
+            &MenuItemBuilder::with_id("reload", "Reload")
+                .accelerator("CmdOrCtrl+R")
+                .build(app)?,
+        )
+        .item(
+            &MenuItemBuilder::with_id("hard_reload", "Hard Reload")
+                .accelerator("CmdOrCtrl+Shift+R")
+                .build(app)?,
+        )
+        .separator()
+        .item(
+            &MenuItemBuilder::with_id("find", "Find in Page")
+                .accelerator("CmdOrCtrl+F")
+                .build(app)?,
+        )
+        .item(
+            &MenuItemBuilder::with_id("print", "Print")
+                .accelerator("CmdOrCtrl+P")
+                .build(app)?,
+        )
+        .separator()
         .item(&MenuItemBuilder::with_id("devtools", "Toggle DevTools").build(app)?)
         .separator()
-        .item(&MenuItemBuilder::with_id("zoom_in", "Zoom In").build(app)?)
-        .item(&MenuItemBuilder::with_id("zoom_out", "Zoom Out").build(app)?)
-        .item(&MenuItemBuilder::with_id("zoom_reset", "Reset Zoom").build(app)?)
+        .item(
+            &MenuItemBuilder::with_id("zoom_in", "Zoom In")
+                .accelerator("CmdOrCtrl+Plus")
+                .build(app)?,
+        )
+        .item(
+            &MenuItemBuilder::with_id("zoom_out", "Zoom Out")
+                .accelerator("CmdOrCtrl+-")
+                .build(app)?,
+        )
+        .item(
+            &MenuItemBuilder::with_id("zoom_reset", "Reset Zoom")
+                .accelerator("CmdOrCtrl+0")
+                .build(app)?,
+        )
         .build()?;
 
     let window_menu = SubmenuBuilder::new(app, "Window")
@@ -148,9 +192,34 @@ pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                     app.exit(0);
                 });
             }
+            "go_back" => {
+                if let Some(w) = crate::app::window_utils::active_webview_window(app) {
+                    let _ = w.eval("history.back();");
+                }
+            }
+            "go_forward" => {
+                if let Some(w) = crate::app::window_utils::active_webview_window(app) {
+                    let _ = w.eval("history.forward();");
+                }
+            }
             "reload" => {
                 if let Some(w) = crate::app::window_utils::active_webview_window(app) {
                     let _ = w.eval("location.reload();");
+                }
+            }
+            "hard_reload" => {
+                if let Some(w) = crate::app::window_utils::active_webview_window(app) {
+                    let _ = w.eval("location.reload(true);");
+                }
+            }
+            "find" => {
+                if let Some(w) = crate::app::window_utils::active_webview_window(app) {
+                    let _ = w.eval("window.__qwenFindOpen && window.__qwenFindOpen();");
+                }
+            }
+            "print" => {
+                if let Some(w) = crate::app::window_utils::active_webview_window(app) {
+                    let _ = w.eval("window.print();");
                 }
             }
             "devtools" => {
@@ -164,11 +233,20 @@ pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
             }
             "zoom_in" | "zoom_out" | "zoom_reset" => {
                 if let Some(w) = crate::app::window_utils::active_webview_window(app) {
-                    let script = match id {
-                        "zoom_in" => "document.body.style.zoom = Math.min(2.0, parseFloat(document.body.style.zoom||'1') + 0.1);",
-                        "zoom_out" => "document.body.style.zoom = Math.max(0.5, parseFloat(document.body.style.zoom||'1') - 0.1);",
-                        _ => "document.body.style.zoom = 1.0;",
+                    // Persiste zoom em settings.json para paridade navegador (por origem)
+                    let mut s = crate::config::store::load();
+                    let cur = if s.general.zoom == 0.0 { 1.0 } else { s.general.zoom };
+                    let next = match id {
+                        "zoom_in" => (cur + 0.1).clamp(0.5, 3.0),
+                        "zoom_out" => (cur - 0.1).clamp(0.5, 3.0),
+                        _ => 1.0,
                     };
+                    s.general.zoom = next;
+                    let _ = crate::config::store::save(&s);
+                    let script = format!(
+                        "document.documentElement.style.zoom='{}'; document.body.style.zoom='{}';",
+                        next, next
+                    );
                     let _ = w.eval(script);
                 }
             }
