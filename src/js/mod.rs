@@ -14,8 +14,6 @@ pub fn build_init_script() -> String {
             var isLoginPage = pathname.includes('login') || pathname.includes('auth') || pathname.includes('callback') || pathname.includes('oauth');
             if (hostname !== 'chat.qwen.ai' || isLoginPage) return;
             try {
-                var raw = localStorage.getItem("LOCAL_MCP_SERVER");
-                if (raw && raw.length > 1000000) return;
                 var qwenCoreEntry = {
                     id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
                     name: "qwen-core",
@@ -30,6 +28,7 @@ pub fn build_init_script() -> String {
                 };
                 var existing = null;
                 try {
+                    var raw = localStorage.getItem("LOCAL_MCP_SERVER");
                     if (raw) { existing = JSON.parse(raw); if (!Array.isArray(existing)) existing = null; }
                 } catch(e) { existing = null; }
                 if (existing && existing.length > 0) {
@@ -51,21 +50,11 @@ pub fn build_init_script() -> String {
         })();
     "#;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
-=======
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
             let debug_flag = if cfg!(debug_assertions) {
                 "window.__QWEN_DEBUG = true;"
             } else {
                 "window.__QWEN_DEBUG = false;"
             };
-<<<<<<< HEAD
-<<<<<<< HEAD
 
             let modules = [
                 debug_flag,
@@ -91,55 +80,4 @@ pub fn build_picker_init_script() -> String {
             [debug_flag, include_str!("core_bridge.js")].join("\n\n")
         })
         .clone()
-=======
-=======
->>>>>>> 0f81055 (Melhorias)
-    let debug_flag = if cfg!(debug_assertions) {
-        "window.__QWEN_DEBUG = true;"
-    } else {
-        "window.__QWEN_DEBUG = false;"
-    };
-
-    let modules = [
-        debug_flag,
-        pre_load_script,
-        include_str!("core_bridge.js"),
-        include_str!("platform_bridge.js"),
-        include_str!("settings_injector.js"),
-    ];
-    modules.join("\n\n")
->>>>>>> 0f81055 (Melhorias)
-=======
-
-=======
-
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
-            let modules = [
-                debug_flag,
-                pre_load_script,
-                include_str!("core_bridge.js"),
-                include_str!("platform_bridge.js"),
-                include_str!("settings_injector.js"),
-            ];
-            modules.join("\n\n")
-        })
-        .clone()
-}
-
-/// Lightweight init script for profile picker (only core bridge, no clipboard/zoom/settings)
-pub fn build_picker_init_script() -> String {
-    PICKER_INIT_SCRIPT
-        .get_or_init(|| {
-            let debug_flag = if cfg!(debug_assertions) {
-                "window.__QWEN_DEBUG = true;"
-            } else {
-                "window.__QWEN_DEBUG = false;"
-            };
-            [debug_flag, include_str!("core_bridge.js")].join("\n\n")
-        })
-        .clone()
-<<<<<<< HEAD
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
-=======
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 }

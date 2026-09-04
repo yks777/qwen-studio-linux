@@ -17,55 +17,8 @@ pub struct GeneralSettings {
     pub check_updates: bool,
     #[serde(default)]
     pub theme: String,
-    /// Zoom level persistido por origem (1.0 = 100%), clamp 0.5..3.0
-    #[serde(default = "default_zoom")]
-    pub zoom: f64,
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-fn default_zoom() -> f64 {
-    1.0
-=======
-fn default_true() -> bool {
-    true
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
-fn default_true() -> bool {
-    true
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-}
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> ce2f600 (optimization)
-=======
->>>>>>> ce2f600 (optimization)
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct PerformanceSettings {
-    #[serde(default)]
-    pub force_software_rendering: bool,
-}
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
->>>>>>> 5877c22 (restore)
-=======
->>>>>>> ce2f600 (optimization)
-=======
->>>>>>> 5877c22 (restore)
-=======
->>>>>>> ce2f600 (optimization)
-=======
->>>>>>> 5877c22 (restore)
 fn default_true() -> bool {
     true
 }

@@ -54,26 +54,6 @@ fn build_cookie(data: &CookieData) -> soup::Cookie {
     cookie
 }
 
-fn hash_session(cookies: &[CookieData], ls: &std::collections::HashMap<String, String>) -> u64 {
-    use std::collections::hash_map::DefaultHasher;
-    use std::hash::{Hash, Hasher};
-    let mut h = DefaultHasher::new();
-    cookies.len().hash(&mut h);
-    for c in cookies {
-        c.name.hash(&mut h);
-        c.value.hash(&mut h);
-        c.domain.hash(&mut h);
-    }
-    ls.len().hash(&mut h);
-    // Hash keys only for speed; values can be large, hash length + first 64 chars
-    for (k, v) in ls {
-        k.hash(&mut h);
-        v.len().hash(&mut h);
-        v.as_bytes().iter().take(64).for_each(|b| b.hash(&mut h));
-    }
-    h.finish()
-}
-
 pub async fn capture_session(app: &AppHandle, window_label: &str, profile_id: &str) {
     let window = match app.get_webview_window(window_label) {
         Some(w) => w,
@@ -131,28 +111,12 @@ pub async fn capture_session(app: &AppHandle, window_label: &str, profile_id: &s
         return;
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-    let cookies = tokio::time::timeout(std::time::Duration::from_secs(2), rx_cookies)
-=======
     let cookies = tokio::time::timeout(std::time::Duration::from_secs(5), rx_cookies)
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
-=======
-    let cookies = tokio::time::timeout(std::time::Duration::from_secs(5), rx_cookies)
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
         .await
         .ok()
         .and_then(|r| r.ok())
         .unwrap_or_default();
-<<<<<<< HEAD
-<<<<<<< HEAD
-    let local_storage = tokio::time::timeout(std::time::Duration::from_secs(2), rx_ls)
-=======
     let local_storage = tokio::time::timeout(std::time::Duration::from_secs(5), rx_ls)
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
-=======
-    let local_storage = tokio::time::timeout(std::time::Duration::from_secs(5), rx_ls)
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
         .await
         .ok()
         .and_then(|r| r.ok())
@@ -165,20 +129,6 @@ pub async fn capture_session(app: &AppHandle, window_label: &str, profile_id: &s
                 .collect::<std::collections::HashMap<String, String>>()
         })
         .unwrap_or_default();
-
-    // Dirty-check via hash antes de bater disco (economia de I/O em idle)
-    {
-        let hash = hash_session(&cookies, &local_storage);
-        if let Some(state) = app.try_state::<crate::app::state::AppState>() {
-            let mut guard = state.last_session_hash.lock().await;
-            if let Some(&prev) = guard.get(profile_id) {
-                if prev == hash {
-                    return;
-                }
-            }
-            guard.insert(profile_id.to_string(), hash);
-        }
-    }
 
     let session = Session {
         cookies,

@@ -30,24 +30,6 @@ pub async fn create_new_window(app: tauri::AppHandle) -> Result<String, String> 
     }
 
     let window = builder.build().map_err(|e| e.to_string())?;
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-    // Aplica zoom persistido
-    {
-        let zoom = crate::config::store::load().general.zoom;
-        if zoom != 0.0 && (zoom - 1.0).abs() > f64::EPSILON {
-            let js = format!(
-                "document.documentElement.style.zoom='{}'; document.body.style.zoom='{}';",
-                zoom, zoom
-            );
-            let _ = window.eval(js);
-        }
-    }
-=======
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
->>>>>>> c0c2f30 (Fix: Upload medias e username)
 
     crate::app::window_utils::attach_file_drop_handler(&window);
 
@@ -106,60 +88,9 @@ pub async fn toggle_hidden_devtools(app: tauri::AppHandle) -> Result<bool, Strin
 
 #[tauri::command]
 pub async fn open_external_link(app: tauri::AppHandle, url: String) -> Result<bool, String> {
-    // Aceita http(s) + mailto/blob/data para paridade navegador; javascript: continua bloqueado
-    let is_http = url.starts_with("http://") || url.starts_with("https://");
-    let is_mailto = url.starts_with("mailto:");
-    let is_blob_data = url.starts_with("blob:") || url.starts_with("data:");
-    if !is_http && !is_mailto && !is_blob_data {
+    if !url.starts_with("http://") && !url.starts_with("https://") {
         return Ok(false);
     }
-<<<<<<< HEAD
-<<<<<<< HEAD
-    // Validação de host para http(s); mailto/blob/data não exigem host
-    if is_http {
-        let parsed = url::Url::parse(&url).map_err(|e| e.to_string())?;
-        if parsed.host_str().is_none() {
-            return Ok(false);
-        }
-    } else if is_blob_data {
-        // blob:/data: já validados pelo prefixo; deixa o navegador/OS decidir
-        // Se vier de window.open, abre no OS browser como fallback
-        let _ = open::that(&url);
-        return Ok(true);
-    } else if is_mailto {
-        let _ = open::that(&url);
-        return Ok(true);
-    }
-    if crate::auth::domains::is_auth_url(&url) {
-        if let Some(w) = crate::app::window_utils::active_webview_window_async(&app).await {
-<<<<<<< HEAD
-            let js_url = serde_json::to_string(&url).map_err(|e| e.to_string())?;
-            let _ = w.eval(format!("window.location.href = {};", js_url));
-=======
-            let _ = w.eval(format!(
-                "window.location.href = '{}';",
-                url.replace('\'', "\\'")
-            ));
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
-    // Validate URL parses and host is not empty to avoid javascript: or data: tricks
-    let parsed = url::Url::parse(&url).map_err(|e| e.to_string())?;
-    if parsed.host_str().is_none() {
-        return Ok(false);
-    }
-    if crate::auth::domains::is_auth_url(&url) {
-        if let Some(w) = crate::app::window_utils::active_webview_window_async(&app).await {
-<<<<<<< HEAD
-            let js_url = serde_json::to_string(&url).map_err(|e| e.to_string())?;
-            let _ = w.eval(format!("window.location.href = {};", js_url));
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
-=======
-            let _ = w.eval(format!(
-                "window.location.href = '{}';",
-                url.replace('\'', "\\'")
-            ));
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
     // Validate URL parses and host is not empty to avoid javascript: or data: tricks
     let parsed = url::Url::parse(&url).map_err(|e| e.to_string())?;
     if parsed.host_str().is_none() {
@@ -169,7 +100,6 @@ pub async fn open_external_link(app: tauri::AppHandle, url: String) -> Result<bo
         if let Some(w) = crate::app::window_utils::active_webview_window_async(&app).await {
             let js_url = serde_json::to_string(&url).map_err(|e| e.to_string())?;
             let _ = w.eval(format!("window.location.href = {};", js_url));
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
             return Ok(true);
         }
     }

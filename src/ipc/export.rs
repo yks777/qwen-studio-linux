@@ -25,31 +25,6 @@ pub async fn export_chat(
         title: title.clone(),
         messages,
         exported_at: now,
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-    };
-
-    let (content, default_name, filter_name, filter_ext) = match format.as_str() {
-        "json" => (
-            export.to_json()?,
-            format!("{}.json", sanitize(&title)),
-            "JSON",
-            "json",
-        ),
-        "html" => (
-            export.to_html(),
-            format!("{}.html", sanitize(&title)),
-            "HTML",
-            "html",
-        ),
-        _ => (
-            export.to_markdown(),
-            format!("{}.md", sanitize(&title)),
-            "Markdown",
-            "md",
-        ),
->>>>>>> c0c2f30 (Fix: Upload medias e username)
     };
 
     let (content, default_name, filter_name, filter_ext) = match format.as_str() {
@@ -74,42 +49,6 @@ pub async fn export_chat(
     };
 
     let (tx, rx) = tokio::sync::oneshot::channel();
-<<<<<<< HEAD
-=======
-    };
-
-    let (content, default_name, filter_name, filter_ext) = match format.as_str() {
-        "json" => (
-            export.to_json()?,
-            format!("{}.json", sanitize(&title)),
-            "JSON",
-            "json",
-        ),
-        "html" => (
-            export.to_html(),
-            format!("{}.html", sanitize(&title)),
-            "HTML",
-            "html",
-        ),
-        _ => (
-            export.to_markdown(),
-            format!("{}.md", sanitize(&title)),
-            "Markdown",
-            "md",
-        ),
-    };
-
-<<<<<<< HEAD
-    let (tx, rx) = std::sync::mpsc::channel();
-<<<<<<< HEAD
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
-    let (tx, rx) = tokio::sync::oneshot::channel();
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
-=======
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
     app.dialog()
         .file()
         .set_title("Export Chat")
@@ -120,40 +59,12 @@ pub async fn export_chat(
         });
 
     let path = rx
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
         .await
         .map_err(|e| e.to_string())?
         .ok_or("No file selected")?;
     tokio::fs::write(&path, &content)
         .await
         .map_err(|e| e.to_string())?;
-=======
-=======
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-        .recv()
-        .map_err(|e| e.to_string())?
-        .ok_or("No file selected")?;
-    std::fs::write(&path, &content).map_err(|e| e.to_string())?;
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
-        .await
-        .map_err(|e| e.to_string())?
-        .ok_or("No file selected")?;
-    tokio::fs::write(&path, &content)
-        .await
-        .map_err(|e| e.to_string())?;
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
-=======
-        .await
-        .map_err(|e| e.to_string())?
-        .ok_or("No file selected")?;
-    tokio::fs::write(&path, &content)
-        .await
-        .map_err(|e| e.to_string())?;
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
     Ok(path)
 }
 
@@ -179,33 +90,9 @@ impl ChatExport {
             r#"<!DOCTYPE html><html><head><meta charset="UTF-8"><title>{}</title>
         <style>body{{font-family:sans-serif;max-width:800px;margin:auto;padding:20px;background:#1a1a1a;color:#e0e0e0;}}</style>
         </head><body><h1>{}</h1><p>Exported: {}</p><hr>{}</body></html>"#,
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
             html_escape(&self.title),
             html_escape(&self.title),
             html_escape(&self.exported_at),
-=======
-            self.title,
-            self.title,
-            self.exported_at,
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
-            html_escape(&self.title),
-            html_escape(&self.title),
-            html_escape(&self.exported_at),
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
-=======
-            self.title,
-            self.title,
-            self.exported_at,
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
-            html_escape(&self.title),
-            html_escape(&self.title),
-            html_escape(&self.exported_at),
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
             self.messages
                 .iter()
                 .map(|m| {
@@ -233,10 +120,6 @@ fn html_escape(s: &str) -> String {
     s.replace('&', "&amp;")
         .replace('<', "&lt;")
         .replace('>', "&gt;")
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
         .replace('"', "&quot;")
         .replace('\'', "&#39;")
 }
@@ -244,36 +127,6 @@ fn html_escape(s: &str) -> String {
 fn sanitize(name: &str) -> String {
     let mut s: String = name
         .chars()
-=======
-}
-
-fn sanitize(name: &str) -> String {
-    name.chars()
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
-        .replace('"', "&quot;")
-        .replace('\'', "&#39;")
-}
-
-fn sanitize(name: &str) -> String {
-    let mut s: String = name
-        .chars()
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
-=======
-}
-
-fn sanitize(name: &str) -> String {
-    name.chars()
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
-        .replace('"', "&quot;")
-        .replace('\'', "&#39;")
-}
-
-fn sanitize(name: &str) -> String {
-    let mut s: String = name
-        .chars()
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
         .map(|c| {
             if c.is_alphanumeric() || c == '-' || c == '_' || c == ' ' {
                 c
@@ -283,14 +136,6 @@ fn sanitize(name: &str) -> String {
         })
         .collect::<String>()
         .trim()
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
-=======
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
         .replace(' ', "_");
     if s.is_empty() {
         s = "chat".to_string();
@@ -303,18 +148,6 @@ fn sanitize(name: &str) -> String {
         s = format!("chat{}", s);
     }
     s
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-        .replace(' ', "_")
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
-=======
-        .replace(' ', "_")
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
 }
 
 fn timestamp_now() -> String {

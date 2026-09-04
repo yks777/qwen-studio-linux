@@ -37,13 +37,7 @@ pub fn initialize(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         let handle = app.handle().clone();
         tauri::async_runtime::spawn(async move {
             loop {
-                // 12h + jitter ±15min para evitar thundering herd e reduzir wakes
-                let jitter = std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .map(|d| d.as_secs() % 1800)
-                    .unwrap_or(0);
-                let interval = 12 * 60 * 60 + jitter % 900;
-                tokio::time::sleep(tokio::time::Duration::from_secs(interval)).await;
+                tokio::time::sleep(tokio::time::Duration::from_secs(4 * 60 * 60)).await;
                 let _ = crate::update::commands::check_for_updates(handle.clone(), false).await;
             }
         });
@@ -75,21 +69,7 @@ pub fn open_profile_picker(app: &AppHandle) -> Result<(), Box<dyn std::error::Er
     .resizable(true)
     .decorations(true)
     .visible(false)
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     .initialization_script(&picker_script)
-=======
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
-    .initialization_script(&picker_script)
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
-=======
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
-    .initialization_script(&picker_script)
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
     .build()?;
 
     // Fallback: force-show the picker if the page's JS show() never fires,
@@ -120,42 +100,6 @@ pub fn open_profile_window(
         return Ok(());
     }
 
-    // Cap de janelas para evitar OOM linear (cada WebView ~200-400MB)
-    const MAX_PROFILE_WINDOWS: usize = 4;
-    let current_count = app
-        .webview_windows()
-        .values()
-        .filter(|w| w.label().starts_with("main-"))
-        .count();
-    if current_count >= MAX_PROFILE_WINDOWS {
-        log::warn!(
-            "[Window] Limite de {} janelas atingido (atual {}), focando janela existente",
-            MAX_PROFILE_WINDOWS,
-            current_count
-        );
-        if let Some(state) = app.try_state::<AppState>() {
-            if let Ok(focused) = state.last_focused.try_read() {
-                if let Some(lbl) = focused.as_ref() {
-                    if let Some(win) = app.get_webview_window(lbl) {
-                        let _ = win.show();
-                        let _ = win.set_focus();
-                        return Ok(());
-                    }
-                }
-            }
-        }
-        // Fallback: foca primeira janela main-* disponível
-        if let Some(win) = app
-            .webview_windows()
-            .values()
-            .find(|w| w.label().starts_with("main-"))
-        {
-            let _ = win.show();
-            let _ = win.set_focus();
-        }
-        return Ok(());
-    }
-
     let data_dir = manager::data_dir_for(&profile.id);
     let init_script = crate::js::build_init_script();
 
@@ -183,41 +127,12 @@ pub fn open_profile_window(
     .initialization_script(&init_script)
     .enable_clipboard_access()
     .on_navigation(|url| crate::webview::navigation::is_allowed(url.as_ref()))
-<<<<<<< HEAD
-<<<<<<< HEAD
-    .on_page_load({
-        let pid_clone = pid.clone();
-        move |w, payload| {
-            if payload.event() == PageLoadEvent::Finished {
-                // Restaura zoom persistido (paridade navegador por origem)
-                let zoom = crate::config::store::load().general.zoom;
-                if zoom != 0.0 && (zoom - 1.0).abs() > f64::EPSILON {
-                    let js = format!(
-                        "document.documentElement.style.zoom='{}'; document.body.style.zoom='{}';",
-                        zoom, zoom
-                    );
-                    let _ = w.eval(js);
-                }
-                if !restored.swap(true, Ordering::SeqCst) {
-                    if let Some(session) = manager::load_session(&pid_clone) {
-                        if !session.local_storage.is_empty() {
-                            let js = crate::profile::cookies::restore_local_storage_js(&session);
-                            let _ = w.eval(js);
-                        }
-                    }
-=======
-=======
->>>>>>> c0c2f30 (Fix: Upload medias e username)
     .on_page_load(move |w, payload| {
         if payload.event() == PageLoadEvent::Finished && !restored.swap(true, Ordering::SeqCst) {
             if let Some(session) = manager::load_session(&pid) {
                 if !session.local_storage.is_empty() {
                     let js = crate::profile::cookies::restore_local_storage_js(&session);
                     let _ = w.eval(js);
-<<<<<<< HEAD
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
->>>>>>> c0c2f30 (Fix: Upload medias e username)
                 }
             }
         }
@@ -318,73 +233,28 @@ fn ensure_session_capture(app: &AppHandle) {
 
     let app = app.clone();
     tauri::async_runtime::spawn(async move {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-        let mut interval = tokio::time::interval(std::time::Duration::from_secs(600));
-=======
-        let mut interval = tokio::time::interval(std::time::Duration::from_secs(60));
->>>>>>> 0f81055 (Melhorias)
-=======
         let mut interval = tokio::time::interval(std::time::Duration::from_secs(120));
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
-=======
-        let mut interval = tokio::time::interval(std::time::Duration::from_secs(60));
->>>>>>> 0f81055 (Melhorias)
-=======
-        let mut interval = tokio::time::interval(std::time::Duration::from_secs(120));
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
         loop {
             interval.tick().await;
-            // Só captura janela focada para reduzir wakes em idle (economia de CPU/IO).
-            // Janelas desfocadas são salvas em Focused(false) com debounce e em CloseRequested.
-            let focused_label = match app.try_state::<AppState>() {
-                Some(state) => state.last_focused.read().await.clone(),
-                None => None,
-            };
-            let entries: Vec<(String, String)> = match app.try_state::<AppState>() {
-                Some(state) => {
-                    let guard = state.window_profiles.read().await;
-                    if let Some(ref focused) = focused_label {
-                        if let Some(p) = guard.get(focused) {
-                            if app.get_webview_window(focused).is_some() {
-                                vec![(focused.clone(), p.id.clone())]
-                            } else {
-                                Vec::new()
-                            }
-                        } else {
-                            Vec::new()
-                        }
-                    } else {
-                        // Sem foco (app em background), captura no máximo 1 para manter sessão fresca sem acordar N janelas
+            let entries = {
+                match app.try_state::<AppState>() {
+                    Some(state) => {
+                        let guard = state.window_profiles.read().await;
                         guard
                             .iter()
-                            .find(|(label, _)| app.get_webview_window(label).is_some())
-                            .map(|(label, p)| vec![(label.clone(), p.id.clone())])
-                            .unwrap_or_default()
+                            .map(|(label, p)| (label.clone(), p.id.clone()))
+                            .collect::<Vec<_>>()
                     }
+                    None => Vec::new(),
                 }
-                None => Vec::new(),
             };
             if entries.is_empty() {
                 continue;
             }
-<<<<<<< HEAD
-<<<<<<< HEAD
-            let futures: Vec<_> = entries
-                .into_iter()
-=======
-=======
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
             // Only capture focused window or all if few; throttle to avoid 2s sequential block
             let futures: Vec<_> = entries
                 .into_iter()
                 .filter(|(label, _)| app.get_webview_window(label).is_some())
-<<<<<<< HEAD
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
-=======
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
                 .map(|(label, pid)| {
                     let app = app.clone();
                     async move {
@@ -494,32 +364,6 @@ pub fn on_run_event(app_handle: &AppHandle, event: tauri::RunEvent) {
                         });
                     }
                 }
-            }
-            tauri::WindowEvent::Focused(false) if label.starts_with("main-") => {
-                // Flush sessão com debounce 2s ao perder foco (economiza wakes vs polling, garante persistência)
-                let app_h = app_handle.clone();
-                let label_clone = label.to_string();
-                tauri::async_runtime::spawn(async move {
-                    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
-                    if let Some(win) = app_h.get_webview_window(&label_clone) {
-                        if win.is_focused().unwrap_or(false) {
-                            return;
-                        }
-                    }
-                    if let Some(state) = app_h.try_state::<AppState>() {
-                        let pid = {
-                            let guard = state.window_profiles.read().await;
-                            guard.get(&label_clone).map(|p| p.id.clone())
-                        };
-                        if let Some(pid) = pid {
-                            let _ = tokio::time::timeout(
-                                std::time::Duration::from_secs(8),
-                                crate::profile::cookies::capture_session(&app_h, &label_clone, &pid),
-                            )
-                            .await;
-                        }
-                    }
-                });
             }
             _ => {}
         }

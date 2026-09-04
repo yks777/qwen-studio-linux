@@ -13,104 +13,28 @@
 
     function applyZoom(scale) {
         currentZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, scale));
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-        document.documentElement.style.zoom = currentZoom;
         document.body.style.zoom = currentZoom;
-        // Persiste via Rust para paridade navegador
-        try { window.__TAURI__?.core?.invoke?.('handle_shortcut', { action: currentZoom === 1.0 ? 'zoom_reset' : (scale > currentZoom ? 'zoom_in' : 'zoom_out') }); } catch(_) {}
-    }
-    function applyZoomViaRust(action) {
-        try { window.__TAURI__?.core?.invoke?.('handle_shortcut', { action }); } catch(_) {}
-        // Optimistic local update for instant feedback
-        const cur = parseFloat(document.documentElement.style.zoom || '1') || 1.0;
-        if (action === 'zoom_in') {
-            const z = Math.min(MAX_ZOOM, cur + ZOOM_STEP);
-            document.documentElement.style.zoom = z; document.body.style.zoom = z; currentZoom = z;
-        } else if (action === 'zoom_out') {
-            const z = Math.max(MIN_ZOOM, cur - ZOOM_STEP);
-            document.documentElement.style.zoom = z; document.body.style.zoom = z; currentZoom = z;
-        } else if (action === 'zoom_reset') {
-            document.documentElement.style.zoom = 1.0; document.body.style.zoom = 1.0; currentZoom = 1.0;
-        }
-=======
-=======
->>>>>>> ce2f600 (optimization)
-        window.__qwenCurrentZoom = currentZoom;
-        if (__zoomTimer) clearTimeout(__zoomTimer);
-        __zoomTimer = setTimeout(() => {
-            // Native WebView zoom via Rust (wry set_zoom_level) — no reflow lag
-            const invoke = window.__TAURI__?.core?.invoke;
-            if (invoke) {
-                invoke('set_zoom', { factor: currentZoom }).catch(() => {
-                    // Fallback to plugin directly if custom command unavailable
-                    invoke('plugin:webview|set_webview_zoom', { value: currentZoom }).catch(() => {});
-                });
-            }
-        }, 50);
-<<<<<<< HEAD
->>>>>>> ce2f600 (optimization)
-=======
-        document.body.style.zoom = currentZoom;
->>>>>>> 5877c22 (restore)
-=======
->>>>>>> ce2f600 (optimization)
-=======
-        document.body.style.zoom = currentZoom;
->>>>>>> 5877c22 (restore)
     }
 
     document.addEventListener('wheel', (e) => {
         if (e.ctrlKey) {
             e.preventDefault();
-            const delta = e.deltaY > 0 ? 'zoom_out' : 'zoom_in';
-            applyZoomViaRust(delta);
+            const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
+            applyZoom(currentZoom + delta);
         }
     }, { passive: false });
 
     document.addEventListener('keydown', (e) => {
-        if (e.ctrlKey || e.metaKey) {
+        if (e.ctrlKey) {
             if (e.key === '=' || e.key === '+') {
                 e.preventDefault();
-                applyZoomViaRust('zoom_in');
+                applyZoom(currentZoom + ZOOM_STEP);
             } else if (e.key === '-') {
                 e.preventDefault();
-                applyZoomViaRust('zoom_out');
+                applyZoom(currentZoom - ZOOM_STEP);
             } else if (e.key === '0') {
                 e.preventDefault();
-                applyZoomViaRust('zoom_reset');
-            } else if (e.key === 'f' || e.key === 'F') {
-                // Deixa handle_shortcut cuidar, mas abre find bar como fallback
-                if (!e.shiftKey && !e.altKey) {
-                    // não previne, apenas garante fallback
-                    setTimeout(() => { window.__qwenFindOpen && window.__qwenFindOpen(); }, 50);
-                }
-            }
-        }
-        // Alt+Left / Alt+Right para back/forward (paridade navegador)
-        if (e.altKey && !e.ctrlKey && !e.metaKey) {
-            if (e.key === 'ArrowLeft') {
-                e.preventDefault();
-                try { window.__TAURI__?.core?.invoke?.('handle_shortcut', { action: 'go_back' }); } catch(_) { history.back(); }
-            } else if (e.key === 'ArrowRight') {
-                e.preventDefault();
-                try { window.__TAURI__?.core?.invoke?.('handle_shortcut', { action: 'go_forward' }); } catch(_) { history.forward(); }
-            }
-        }
-    });
-
-    // Middle-click (auxclick) em links → abrir externo/nova janela (paridade navegador)
-    document.addEventListener('auxclick', (e) => {
-        if (e.button === 1) {
-            const a = e.target.closest && e.target.closest('a[href]');
-            if (a && a.href) {
-                const href = a.href;
-                if (href.startsWith('http://') || href.startsWith('https://')) {
-                    e.preventDefault();
-                    window.electronAPI?.open_external_link?.(href);
-                }
+                applyZoom(1.0);
             }
         }
     });
@@ -298,23 +222,7 @@
         dt.items.add(file);
         const dropAttempted = trySyntheticDrop(file, dt);
         if (dropAttempted) {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
             if(window.__QWEN_DEBUG) console.log('[Qwen Studio] drop sintético (File object) disparado; tentando fallback <input>');
-=======
-            console.log('[Qwen Studio] drop sintético (File object) disparado; tentando fallback <input>');
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
-            if(window.__QWEN_DEBUG) console.log('[Qwen Studio] drop sintético (File object) disparado; tentando fallback <input>');
->>>>>>> 0f81055 (Melhorias)
-=======
-            console.log('[Qwen Studio] drop sintético (File object) disparado; tentando fallback <input>');
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
-            if(window.__QWEN_DEBUG) console.log('[Qwen Studio] drop sintético (File object) disparado; tentando fallback <input>');
->>>>>>> 0f81055 (Melhorias)
         }
         const input = findFileInput();
         if (input) {
@@ -331,23 +239,7 @@
                 input.style.display = origDisplay;
                 input.style.visibility = origVisibility;
                 input.hidden = origHidden;
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
                 if(window.__QWEN_DEBUG) console.log('[Qwen Studio] injected File object via <input> fallback:', file.name);
-=======
-                console.log('[Qwen Studio] injected File object via <input> fallback:', file.name);
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
-                if(window.__QWEN_DEBUG) console.log('[Qwen Studio] injected File object via <input> fallback:', file.name);
->>>>>>> 0f81055 (Melhorias)
-=======
-                console.log('[Qwen Studio] injected File object via <input> fallback:', file.name);
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
-                if(window.__QWEN_DEBUG) console.log('[Qwen Studio] injected File object via <input> fallback:', file.name);
->>>>>>> 0f81055 (Melhorias)
                 return true;
             } catch (err) {
                 console.warn('[Qwen Studio] input injection (File object) failed', err);
@@ -366,34 +258,9 @@
     let __qwenDropping = false;
 
     async function injectLargeFile({ path, name, mime, size }) {
-<<<<<<< HEAD
-<<<<<<< HEAD
-        const MAX_SIZE = 100 * 1024 * 1024; // 100 MiB limite (economia RAM) — window_utils.rs também filtra
-        if (size > MAX_SIZE) {
-            console.warn(`[Qwen Studio] arquivo ignorado, excede 100 MiB: ${name} (${size} bytes)`);
-            return false;
-        }
         const CHUNK = 4 * 1024 * 1024; // 4 MiB
         const parts = [];
         if(window.__QWEN_DEBUG) console.log(`[Qwen Studio] iniciando transferência binária: ${name} (${size} bytes, mime=${mime})`);
-=======
-        const CHUNK = 4 * 1024 * 1024; // 4 MiB
-        const parts = [];
-<<<<<<< HEAD
-        console.log(`[Qwen Studio] iniciando transferência binária: ${name} (${size} bytes, mime=${mime})`);
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
-        if(window.__QWEN_DEBUG) console.log(`[Qwen Studio] iniciando transferência binária: ${name} (${size} bytes, mime=${mime})`);
->>>>>>> 0f81055 (Melhorias)
-=======
-        const CHUNK = 4 * 1024 * 1024; // 4 MiB
-        const parts = [];
-<<<<<<< HEAD
-        console.log(`[Qwen Studio] iniciando transferência binária: ${name} (${size} bytes, mime=${mime})`);
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
-        if(window.__QWEN_DEBUG) console.log(`[Qwen Studio] iniciando transferência binária: ${name} (${size} bytes, mime=${mime})`);
->>>>>>> 0f81055 (Melhorias)
         try {
             for (let off = 0; off < size; off += CHUNK) {
                 const len = Math.min(CHUNK, size - off);
@@ -425,23 +292,7 @@
                 }
             }
             const file = new File(parts, name || 'file', { type: mime || 'application/octet-stream' });
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
             if(window.__QWEN_DEBUG) console.log(`[Qwen Studio] File montado: ${file.name} ${file.size} bytes, injetando...`);
-=======
-            console.log(`[Qwen Studio] File montado: ${file.name} ${file.size} bytes, injetando...`);
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
-            if(window.__QWEN_DEBUG) console.log(`[Qwen Studio] File montado: ${file.name} ${file.size} bytes, injetando...`);
->>>>>>> 0f81055 (Melhorias)
-=======
-            console.log(`[Qwen Studio] File montado: ${file.name} ${file.size} bytes, injetando...`);
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
-            if(window.__QWEN_DEBUG) console.log(`[Qwen Studio] File montado: ${file.name} ${file.size} bytes, injetando...`);
->>>>>>> 0f81055 (Melhorias)
             const ok = injectFileObject(file);
             if (!ok) console.warn('[Qwen Studio] injeção do File chunkado falhou:', name);
             return ok;
@@ -457,46 +308,14 @@
         if (!Array.isArray(metas) || metas.length === 0) return;
         __qwenDropQueue.push(...metas);
         if (__qwenDropping) {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
             if(window.__QWEN_DEBUG) console.log('[Qwen Studio] drop enfileirado (já processando), fila:', __qwenDropQueue.length);
-=======
-            console.log('[Qwen Studio] drop enfileirado (já processando), fila:', __qwenDropQueue.length);
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
-            if(window.__QWEN_DEBUG) console.log('[Qwen Studio] drop enfileirado (já processando), fila:', __qwenDropQueue.length);
->>>>>>> 0f81055 (Melhorias)
-=======
-            console.log('[Qwen Studio] drop enfileirado (já processando), fila:', __qwenDropQueue.length);
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
-            if(window.__QWEN_DEBUG) console.log('[Qwen Studio] drop enfileirado (já processando), fila:', __qwenDropQueue.length);
->>>>>>> 0f81055 (Melhorias)
             return;
         }
         __qwenDropping = true;
         while (__qwenDropQueue.length > 0) {
             const m = __qwenDropQueue.shift();
             try {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
                 if(window.__QWEN_DEBUG) console.log('[Qwen Studio] processando drop:', m.name, m.size, 'bytes');
-=======
-                console.log('[Qwen Studio] processando drop:', m.name, m.size, 'bytes');
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
-                if(window.__QWEN_DEBUG) console.log('[Qwen Studio] processando drop:', m.name, m.size, 'bytes');
->>>>>>> 0f81055 (Melhorias)
-=======
-                console.log('[Qwen Studio] processando drop:', m.name, m.size, 'bytes');
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
-                if(window.__QWEN_DEBUG) console.log('[Qwen Studio] processando drop:', m.name, m.size, 'bytes');
->>>>>>> 0f81055 (Melhorias)
                 await injectLargeFile(m);
             } catch (e) {
                 console.error('[Qwen Studio] falha no drop:', m.name, e);
@@ -669,109 +488,12 @@
         window.__qwenScheduleFallbackPaste();
     }, true);
 
-    // window.open browser-like: navega dentro do WebView para http(s) do mesmo
-    // site, abre externo via open_external_link para domínios terceiros.
-    // Mantém compatibilidade: isTrusted=false ainda funciona porque on_navigation
-    // agora permite https geral (src/webview/navigation.rs).
-    const _nativeOpen = window.open.bind(window);
     window.open = function(url, target, features) {
-        if (!url) return null;
-        try {
-            const isHttp = url.startsWith('http://') || url.startsWith('https://');
-            const isSpecial = url.startsWith('mailto:') || url.startsWith('blob:') || url.startsWith('data:');
-            if (isHttp || isSpecial) {
-                // Tenta navegar dentro do WebView quando for _self/_blank sem noopener estrito;
-                // para links externos terceiros, delega ao OS via open_external_link mas ainda
-                // retorna um window proxy para não quebrar paginas que checam if (win) { win.postMessage }
-                if (target === '_self' || !target || target === '_blank') {
-                    // Para chat.qwen.ai e auth, deixar WebView navegar; para outros, abrir externo
-                    const isChatOrAuth = url.includes('chat.qwen.ai') || url.includes('aliyun.com') || url.includes('accounts.google.com') || url.includes('oauth2.googleapis');
-                    if (isChatOrAuth && isHttp) {
-                        // Navegação interna: usa href para não depender de popup
-                        if (target === '_self') {
-                            window.location.href = url;
-                            return window;
-                        }
-                        // _blank interno: tenta _nativeOpen se disponível, fallback para href
-                        try { const w = _nativeOpen(url, target, features); if (w) return w; } catch(_) {}
-                        window.electronAPI?.open_external_link?.(url);
-                        return null;
-                    }
-                    window.electronAPI?.open_external_link?.(url);
-                    return null;
-                }
-                window.electronAPI?.open_external_link?.(url);
-                return null;
-            }
-        } catch(_) {}
-        try { return _nativeOpen(url, target, features); } catch(_) { return null; }
+        if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+            window.electronAPI?.open_external_link?.(url);
+        }
+        return null;
     };
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-    // --- Find bar (Ctrl+F) — paridade navegador ---
-    (function() {
-        let findBar = null;
-        let lastQuery = '';
-        function createFindBar() {
-            if (findBar) return findBar;
-            const bar = document.createElement('div');
-            bar.id = 'qwen-find-bar';
-            bar.style.cssText = 'position:fixed;top:0;right:20px;z-index:999999;background:#1e1e1e;color:#eee;border:1px solid #333;border-top:none;border-radius:0 0 8px 8px;padding:8px 10px;display:flex;gap:6px;align-items:center;font-family:sans-serif;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.4)';
-            bar.innerHTML = '<input id="qwen-find-input" placeholder="Buscar" style="background:#2d2d2d;color:#fff;border:1px solid #444;border-radius:4px;padding:4px 8px;outline:none;width:200px"><button id="qwen-find-prev" style="background:#2d2d2d;color:#eee;border:1px solid #444;border-radius:4px;padding:4px 8px;cursor:pointer">◀</button><button id="qwen-find-next" style="background:#2d2d2d;color:#eee;border:1px solid #444;border-radius:4px;padding:4px 8px;cursor:pointer">▶</button><span id="qwen-find-count" style="min-width:40px;text-align:center;opacity:.7"></span><button id="qwen-find-close" style="background:transparent;color:#aaa;border:none;font-size:16px;cursor:pointer;padding:2px 6px">✕</button>';
-            document.documentElement.appendChild(bar);
-            const input = bar.querySelector('#qwen-find-input');
-            const count = bar.querySelector('#qwen-find-count');
-            let findIndex = 0;
-            function doFind(backwards) {
-                const q = input.value;
-                if (!q) { count.textContent = ''; return; }
-                if (q !== lastQuery) { lastQuery = q; findIndex = 0; }
-                try {
-                    const found = window.find(q, false, backwards, true, false, false, false);
-                    count.textContent = found ? '✓' : '0';
-                } catch(_) { count.textContent = ''; }
-            }
-            input.addEventListener('input', () => doFind(false));
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') { e.preventDefault(); doFind(e.shiftKey); }
-                if (e.key === 'Escape') { e.preventDefault(); closeBar(); }
-            });
-            bar.querySelector('#qwen-find-next').addEventListener('click', () => doFind(false));
-            bar.querySelector('#qwen-find-prev').addEventListener('click', () => doFind(true));
-            bar.querySelector('#qwen-find-close').addEventListener('click', closeBar);
-            function closeBar() {
-                bar.style.display = 'none';
-                try { window.getSelection()?.removeAllRanges(); } catch(_) {}
-                count.textContent = '';
-            }
-            findBar = bar;
-            findBar._input = input;
-            findBar._close = closeBar;
-            // ESC global fecha
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && bar.style.display !== 'none') closeBar();
-            });
-            return bar;
-        }
-        window.__qwenFindOpen = function() {
-            const bar = createFindBar();
-            bar.style.display = 'flex';
-            const input = bar._input;
-            const sel = window.getSelection()?.toString() || '';
-            if (sel && sel.length < 100) input.value = sel;
-            input.focus();
-            input.select();
-            if (input.value) {
-                try { window.find(input.value, false, false, true, false, false, false); } catch(_) {}
-            }
-        };
-        window.__qwenFindClose = function() { if (findBar) findBar._close(); };
-    })();
-
-=======
->>>>>>> 0f81055 (Melhorias)
-=======
->>>>>>> 0f81055 (Melhorias)
     if(window.__QWEN_DEBUG) console.log('[Qwem Studio] Platform bridge loaded');
 })();

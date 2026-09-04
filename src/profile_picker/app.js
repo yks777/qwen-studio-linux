@@ -1,5 +1,4 @@
-const invoke = window.__TAURI__?.core?.invoke ?? window.__TAURI_INTERNALS__?.invoke ?? null;
-if (!invoke) console.error('[Picker] Tauri invoke não disponível — verifique withGlobalTauri');
+const invoke = window.__TAURI__.core.invoke;
 
 const ICONS = {
     money: {
@@ -638,7 +637,7 @@ editCancel.addEventListener('click', closeEditForm);
 editForm.addEventListener('submit', handleEdit);
 
 try {
-    (window.__TAURI__?.event ?? window.__TAURI_INTERNALS__?.event)?.listen?.('focus-create', () => {
+    window.__TAURI__.event.listen('focus-create', () => {
         if (!createForm.classList.contains('active')) {
             toggleCreateForm();
         }

@@ -19,53 +19,19 @@ pub fn compare_versions(current: &str, latest: &str) -> i32 {
 use std::sync::LazyLock;
 use std::time::Duration;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-pub static HTTP_CLIENT: LazyLock<reqwest::Client> = LazyLock::new(|| {
-=======
 static HTTP_CLIENT: LazyLock<reqwest::Client> = LazyLock::new(|| {
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
-=======
-static HTTP_CLIENT: LazyLock<reqwest::Client> = LazyLock::new(|| {
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
     reqwest::Client::builder()
         .timeout(Duration::from_secs(15))
         .connect_timeout(Duration::from_secs(5))
         .user_agent("qwen-studio-linux")
-<<<<<<< HEAD
-<<<<<<< HEAD
-        .pool_idle_timeout(Duration::from_secs(5))
-=======
         .pool_idle_timeout(Duration::from_secs(30))
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
-=======
-        .pool_idle_timeout(Duration::from_secs(30))
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
         .build()
         .expect("http client")
 });
 
 pub async fn fetch_latest_version() -> Result<(String, String, Option<String>), String> {
     let url = "https://api.github.com/repos/yks777/qwen-studio-linux/releases/latest";
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     let resp = HTTP_CLIENT
-=======
-    let client = reqwest::Client::new();
-    let resp = client
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
-    let resp = HTTP_CLIENT
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
-=======
-    let client = reqwest::Client::new();
-    let resp = client
->>>>>>> c0c2f30 (Fix: Upload medias e username)
-=======
-    let resp = HTTP_CLIENT
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
         .get(url)
         .header("User-Agent", "qwen-studio-linux")
         .send()

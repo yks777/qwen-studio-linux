@@ -1,6 +1,6 @@
 [package]
 name = "qwen-studio-linux"
-version = "1.0.2"
+version = "1.0.1"
 description = "Desktop AI assistant wrapper for Qwen Chat"
 authors = ["yks777"]
 license = "MIT"
@@ -53,21 +53,5 @@ lto = true
 codegen-units = 1
 panic = "abort"
 debug = 0
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 opt-level = "z"
 overflow-checks = false
-=======
->>>>>>> 0f81055 (Melhorias)
-=======
-opt-level = "z"
-overflow-checks = false
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
-=======
->>>>>>> 0f81055 (Melhorias)
-=======
-opt-level = "z"
-overflow-checks = false
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)

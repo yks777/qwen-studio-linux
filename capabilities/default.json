@@ -4,15 +4,7 @@
   "description": "Default capabilities for Qwem Studio Linux",
   "windows": ["main-*", "window-*", "profile-picker"],
   "remote": {
-<<<<<<< HEAD
-<<<<<<< HEAD
-    "urls": ["https://chat.qwen.ai", "https://*.qwen.ai", "https://*.aliyun.com", "https://accounts.google.com", "https://oauth2.googleapis.com", "https://*.githubusercontent.com", "https://cdn.jsdelivr.net", "https://unpkg.com"]
-=======
     "urls": ["https://chat.qwen.ai", "https://*.qwen.ai", "https://*.aliyun.com", "https://accounts.google.com", "https://oauth2.googleapis.com"]
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
-=======
-    "urls": ["https://chat.qwen.ai", "https://*.qwen.ai", "https://*.aliyun.com", "https://accounts.google.com", "https://oauth2.googleapis.com"]
->>>>>>> f88f2ac (Otimiza performance e corrige menu Arch Wayland)
   },
   "permissions": [
     "core:default",
