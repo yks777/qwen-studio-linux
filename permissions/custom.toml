@@ -34,6 +34,8 @@ description = "Allow window management commands"
 commands.allow = [
   "open_devtool",
   "toggle_hidden_devtools",
+  "toggle_fullscreen",
+  "hard_reload",
   "get_app_version",
   "get_platform_info",
   "open_external_link",
@@ -53,7 +55,8 @@ commands.allow = [
   "restart_app",
   "create_new_window",
   "read_clipboard_image",
-  "save_clipboard_image_to_file"
+  "save_clipboard_image_to_file",
+  "handle_shortcut"
 ]
 
 [[permission]]

@@ -22,8 +22,23 @@ pub async fn handle_shortcut(app: tauri::AppHandle, action: String) -> Result<()
                 }
             }
         }
+        "hard_reload" => {
+            if let Some(w) = crate::app::window_utils::active_webview_window(&app) {
+                if let Err(e) = w.eval("location.reload(true);") {
+                    log::warn!("[Shortcuts] hard_reload eval failed: {}", e);
+                }
+            }
+        }
         "devtools" => {
             let _ = super::window::toggle_hidden_devtools(app).await;
+        }
+        "fullscreen" => {
+            let _ = super::window::toggle_fullscreen(app).await;
+        }
+        "find" => {
+            if let Some(w) = crate::app::window_utils::active_webview_window(&app) {
+                let _ = w.eval("window.__qwenFindOpen && window.__qwenFindOpen();");
+            }
         }
         "zoom_in" => apply_zoom(
             &app,

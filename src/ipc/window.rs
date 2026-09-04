@@ -97,6 +97,24 @@ pub async fn toggle_hidden_devtools(app: tauri::AppHandle) -> Result<bool, Strin
 }
 
 #[tauri::command]
+pub async fn toggle_fullscreen(app: tauri::AppHandle) -> Result<bool, String> {
+    let w = crate::app::window_utils::active_webview_window_async(&app)
+        .await
+        .ok_or("No main window")?;
+    let is_fullscreen = w.is_fullscreen().map_err(|e| e.to_string())?;
+    w.set_fullscreen(!is_fullscreen).map_err(|e| e.to_string())?;
+    Ok(!is_fullscreen)
+}
+
+#[tauri::command]
+pub async fn hard_reload(app: tauri::AppHandle) -> Result<(), String> {
+    if let Some(w) = crate::app::window_utils::active_webview_window_async(&app).await {
+        w.eval("location.reload(true);").map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+#[tauri::command]
 pub async fn open_external_link(app: tauri::AppHandle, url: String) -> Result<bool, String> {
     if !url.starts_with("http://") && !url.starts_with("https://") {
         return Ok(false);

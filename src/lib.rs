@@ -51,6 +51,8 @@ pub fn run() {
             ipc::window::close_window,
             ipc::window::open_devtool,
             ipc::window::toggle_hidden_devtools,
+            ipc::window::toggle_fullscreen,
+            ipc::window::hard_reload,
             ipc::window::open_external_link,
             ipc::window::switch_theme,
             ipc::window::switch_ln,
