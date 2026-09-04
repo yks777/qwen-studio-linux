@@ -17,6 +17,12 @@ pub struct GeneralSettings {
     pub check_updates: bool,
     #[serde(default)]
     pub theme: String,
+    #[serde(default)]
+    pub zoom: f64,
+    #[serde(default)]
+    pub first_run_done: bool,
+    #[serde(default)]
+    pub low_gpu_mode: bool,
 }
 
 fn default_true() -> bool {

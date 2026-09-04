@@ -23,7 +23,17 @@ pub async fn create_new_window(app: tauri::AppHandle) -> Result<String, String> 
             .user_agent(USER_AGENT)
             .initialization_script(&script)
             .enable_clipboard_access()
-            .on_navigation(|url| crate::webview::navigation::is_allowed(url.as_ref()));
+            .on_navigation(|url| {
+                let s = url.as_ref();
+                if crate::webview::navigation::is_allowed(s) {
+                    return true;
+                }
+                if s.starts_with("http://") || s.starts_with("https://") {
+                    let _ = open::that(s);
+                    return false;
+                }
+                false
+            });
 
     if let Some(profile) = crate::app::window_utils::focused_profile_async(&app).await {
         builder = builder.data_directory(crate::profile::manager::data_dir_for(&profile.id));

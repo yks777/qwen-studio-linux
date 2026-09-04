@@ -202,6 +202,9 @@ pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                     }
                 });
             }
+            "documentation" => {
+                let _ = open::that("https://github.com/yks777/qwen-studio-linux#readme");
+            }
             "github" => {
                 let _ = open::that("https://github.com/yks777/qwen-studio-linux");
             }

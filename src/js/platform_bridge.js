@@ -11,10 +11,27 @@
     // sintéticos (change/input) que poderiam re-triggerar o listener.
     let __pasteInProgress = false;
 
+    // Zoom: persist per-profile via localStorage + respect reduced-motion/low-GPU
+    try {
+        const saved = parseFloat(localStorage.getItem('__qwen_zoom') || '');
+        if (!isNaN(saved)) currentZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, saved));
+    } catch(_) {}
+    const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     function applyZoom(scale) {
         currentZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, scale));
-        document.body.style.zoom = currentZoom;
+        // Use zoom (layout) not transform — WebKit handles zoom natively with less GPU layers; disable transition on low-GPU
+        document.documentElement.style.zoom = String(currentZoom);
+        document.body.style.zoom = String(currentZoom);
+        try { localStorage.setItem('__qwen_zoom', String(currentZoom)); } catch(_) {}
+        // Also persist to Rust settings when available (for multi-profile sync)
+        try { window.__TAURI__?.core?.invoke?.('set_setting', { key: 'zoom', value: currentZoom }); } catch(_) {}
+        if (prefersReducedMotion) {
+            document.documentElement.style.transition = 'none';
+            document.body.style.transition = 'none';
+        }
     }
+    // Apply saved zoom on load
+    if (currentZoom !== 1.0) applyZoom(currentZoom);
 
     document.addEventListener('wheel', (e) => {
         if (e.ctrlKey) {

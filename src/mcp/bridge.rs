@@ -9,6 +9,7 @@ use tokio::process::Command;
 use tokio::sync::Mutex;
 
 type PendingMap = HashMap<u64, tokio::sync::oneshot::Sender<Result<serde_json::Value>>>;
+const MAX_PENDING: usize = 64;
 
 pub struct Bridge {
     stdin: Arc<Mutex<tokio::process::ChildStdin>>,
@@ -70,7 +71,15 @@ impl Bridge {
 
         let (tx, rx) = tokio::sync::oneshot::channel();
         {
-            self.pending.lock().await.insert(id, tx);
+            let mut pending = self.pending.lock().await;
+            if pending.len() >= MAX_PENDING {
+                // Evict oldest (lowest id) to bound RAM — famous MCP-bridge pattern
+                if let Some(min_id) = pending.keys().min().copied() {
+                    pending.remove(&min_id);
+                    log::warn!("[Bridge] pending overflow, evicted #{}", min_id);
+                }
+            }
+            pending.insert(id, tx);
         }
         if let Err(e) = {
             let mut stdin = self.stdin.lock().await;
@@ -226,16 +235,22 @@ fn resolve_bridge_path(app: Option<&tauri::AppHandle>) -> Result<std::path::Path
 }
 
 fn resolve_node_bin() -> String {
-    // Prefer 'node', fallback to 'nodejs' on some distros
-    if std::process::Command::new("node")
-        .arg("--version")
-        .stdout(std::process::Stdio::null())
-        .stderr(std::process::Stdio::null())
-        .status()
-        .map(|s| s.success())
-        .unwrap_or(false)
-    {
-        return "node".into();
-    }
-    "nodejs".into()
+    use std::sync::OnceLock;
+    static CACHE: OnceLock<String> = OnceLock::new();
+    CACHE
+        .get_or_init(|| {
+            if std::process::Command::new("node")
+                .arg("--version")
+                .stdout(std::process::Stdio::null())
+                .stderr(std::process::Stdio::null())
+                .status()
+                .map(|s| s.success())
+                .unwrap_or(false)
+            {
+                "node".into()
+            } else {
+                "nodejs".into()
+            }
+        })
+        .clone()
 }

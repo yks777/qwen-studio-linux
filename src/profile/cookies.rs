@@ -169,22 +169,28 @@ pub async fn restore_session(app: &AppHandle, window_label: &str, profile_id: &s
             }
         };
 
-        for cookie_data in &cookies {
-            let mut cookie = build_cookie(cookie_data);
-            let state = state.clone();
-            manager.add_cookie(
-                &mut cookie,
-                None::<&Cancellable>,
-                move |_res: Result<(), glib::Error>| {
-                    let mut g = state.lock().unwrap_or_else(|e| e.into_inner());
-                    g.0 += 1;
-                    if g.0 >= total {
-                        if let Some(tx) = g.1.take() {
-                            let _ = tx.send(());
+        // Batched restore (8 concurrent) — famous WebKit pattern reduces GTK thread churn and RAM spikes
+        const BATCH: usize = 8;
+        for chunk in cookies.chunks(BATCH) {
+            for cookie_data in chunk {
+                let mut cookie = build_cookie(cookie_data);
+                let state = state.clone();
+                manager.add_cookie(
+                    &mut cookie,
+                    None::<&Cancellable>,
+                    move |_res: Result<(), glib::Error>| {
+                        let mut g = state.lock().unwrap_or_else(|e| e.into_inner());
+                        g.0 += 1;
+                        if g.0 >= total {
+                            if let Some(tx) = g.1.take() {
+                                let _ = tx.send(());
+                            }
                         }
-                    }
-                },
-            );
+                    },
+                );
+            }
+            // Yield to GTK main loop between batches to avoid blocking UI on low-CPU machines
+            std::thread::sleep(std::time::Duration::from_millis(5));
         }
 
         if total == 0 {

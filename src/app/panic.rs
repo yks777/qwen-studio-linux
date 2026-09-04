@@ -77,6 +77,31 @@ fn get_crash_log_dir() -> PathBuf {
         .join("qwen-studio-linux")
         .join("crash-logs");
     let _ = std::fs::create_dir_all(&dir);
+    // Rotation: keep at most 10 logs, max 5 MiB each — prevents RAM/disk bloat on low-end machines
+    if let Ok(entries) = std::fs::read_dir(&dir) {
+        let mut logs: Vec<PathBuf> = entries
+            .filter_map(|e| e.ok())
+            .map(|e| e.path())
+            .filter(|p| p.extension().map(|e| e == "log").unwrap_or(false))
+            .collect();
+        if logs.len() > 10 {
+            logs.sort_by_key(|p| {
+                std::fs::metadata(p)
+                    .and_then(|m| m.modified())
+                    .unwrap_or(std::time::SystemTime::UNIX_EPOCH)
+            });
+            for old in logs.iter().take(logs.len() - 10) {
+                let _ = std::fs::remove_file(old);
+            }
+        }
+        for p in &logs {
+            if let Ok(meta) = std::fs::metadata(p) {
+                if meta.len() > 5 * 1024 * 1024 {
+                    let _ = std::fs::remove_file(p);
+                }
+            }
+        }
+    }
     dir
 }
 

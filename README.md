@@ -1,5 +1,7 @@
 # Qwen Studio Linux
 
+> **v1.2.0** — Fluidez PWA + leveza (RAM/CPU/GPU) + updater só no 1º launch
+
 <div align="center">
   <a href="#qwen-studio-linux">🇺🇲 English</a> &nbsp;|&nbsp; <a href="#qwen-studio-linux--português">🇧🇷 Português</a>
 </div>
@@ -318,8 +320,17 @@ npm run tauri:dev
 Project policies:
 
 - **Zero warnings**: `cargo clippy -- -D warnings` must pass.
-- **Versioning**: bump the version in `Cargo.toml` **and** `tauri.conf.json`.
+- **Versioning**: bump the version in `Cargo.toml`, `tauri.conf.json` **and** `package.json`.
 - `node_modules/`, `dist/`, `target/` and build assets are in `.gitignore`.
+
+---
+
+## Changelog
+
+### 1.2.0 — PWA parity + lightness
+- Updater now runs only on first launch (no 4h background polling).
+- RAM/CPU/GPU lightness: debounced session capture, batched cookie restore, chunked clipboard, MCP pending cap, crash-log rotation, MutationObserver for Settings, cached `node` binary, auto GPU fallback for llvmpipe/no-GPU, native zoom.
+- Fixes: external links no longer die silently, tray menu rebuilds on profile change, zoom persistence.
 
 ---
 
@@ -645,8 +656,17 @@ npm run tauri:dev
 Políticas do projeto:
 
 - **Zero warnings**: `cargo clippy -- -D warnings` deve passar.
-- **Versionamento**: atualizar a versão em `Cargo.toml` **e** `tauri.conf.json`.
+- **Versionamento**: atualizar a versão em `Cargo.toml`, `tauri.conf.json` **e** `package.json`.
 - `node_modules/`, `dist/`, `target/` e assets de build ficam no `.gitignore`.
+
+---
+
+## Changelog
+
+### 1.2.0 — Fluidez + leveza
+- Updater só no primeiro launch (sem polling 4h em background).
+- Leveza RAM/CPU/GPU: captura de sessão debounced, restauração de cookies em lotes, clipboard chunked, limite de pendentes MCP, rotação de crash logs, MutationObserver nas Configurações, cache do binário `node`, fallback GPU automático e zoom nativo.
+- Correções: links externos, tray e persistência de zoom.
 
 ---
 
