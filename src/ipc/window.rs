@@ -1,6 +1,6 @@
 use crate::webview::user_agent::USER_AGENT;
 use std::sync::atomic::{AtomicU32, Ordering};
-use tauri::Emitter;
+use tauri::{Emitter, Manager};
 
 static WINDOW_COUNTER: AtomicU32 = AtomicU32::new(1);
 
@@ -42,6 +42,17 @@ pub async fn create_new_window(app: tauri::AppHandle) -> Result<String, String> 
     let window = builder.build().map_err(|e| e.to_string())?;
 
     crate::app::window_utils::attach_file_drop_handler(&window);
+
+    // Track generic windows for capture_all_sessions and cleanup
+    if let Some(state) = app.try_state::<crate::app::state::AppState>() {
+        if let Some(profile) = crate::app::window_utils::focused_profile_async(&app).await {
+            let map = state.window_profiles.clone();
+            let lbl = label.clone();
+            tauri::async_runtime::spawn(async move {
+                map.write().await.insert(lbl, profile);
+            });
+        }
+    }
 
     Ok(label)
 }

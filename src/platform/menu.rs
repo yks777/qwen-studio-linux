@@ -268,13 +268,16 @@ pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
-    // Rebuild the menu (notably the Perfils submenu) whenever profiles change.
+    // Rebuild the menu (notably the Perfils submenu) whenever profiles change — debounced 300ms
     let rebuild_handle = app.clone();
     app.listen("profiles-updated", move |_| {
         let handle = rebuild_handle.clone();
-        let closure_handle = handle.clone();
-        let _ = handle.run_on_main_thread(move || {
-            let _ = build_app_menu(&closure_handle);
+        tauri::async_runtime::spawn(async move {
+            tokio::time::sleep(std::time::Duration::from_millis(300)).await;
+            let closure_handle = handle.clone();
+            let _ = handle.run_on_main_thread(move || {
+                let _ = build_app_menu(&closure_handle);
+            });
         });
     });
 

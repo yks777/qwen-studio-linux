@@ -109,9 +109,16 @@
                 observer = null;
             }
         });
-        observer.observe(document.documentElement, { childList: true, subtree: true });
-        // Fallback single retry after 1s for edge cases, not 20×100ms
-        setTimeout(() => { if (observer) tryInjectOnce(); }, 1000);
+        // Scope to body when available to reduce subtree cost (P3.3)
+        const target = document.body || document.documentElement;
+        observer.observe(target, { childList: true, subtree: true });
+        setTimeout(() => {
+            if (observer) {
+                tryInjectOnce();
+                observer.disconnect();
+                observer = null;
+            }
+        }, 1000);
     }
 
     function ensureBanner(id) {
@@ -245,6 +252,11 @@
         let remaining = 60;
         const txt = banner.querySelector('#qwen-restart-text');
         const timer = setInterval(() => {
+            // If banner was removed externally (SPA navigation), clean up timer (P3.3)
+            if (!document.contains(banner)) {
+                clearInterval(timer);
+                return;
+            }
             remaining--;
             if (txt) txt.textContent = `Update installed. Restarting in ${remaining}s...`;
             if (remaining <= 0) {
@@ -252,9 +264,19 @@
                 doRestart();
             }
         }, 1000);
+        // Cleanup if banner removed via MutationObserver
+        const bannerObs = new MutationObserver(() => {
+            if (!document.contains(banner)) {
+                clearInterval(timer);
+                bannerObs.disconnect();
+            }
+        });
+        bannerObs.observe(document.body, { childList: true, subtree: true });
+        setTimeout(() => bannerObs.disconnect(), 65000);
 
         banner.querySelector('#qwen-restart-now')?.addEventListener('click', () => {
             clearInterval(timer);
+            bannerObs.disconnect();
             doRestart();
         });
     }

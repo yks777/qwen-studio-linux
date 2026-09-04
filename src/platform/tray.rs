@@ -115,14 +115,18 @@ pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
         })
         .build(app)?;
 
-    // Rebuild tray menu when profiles change — fixes stale menu (famous Tauri pattern)
+    // Rebuild tray menu when profiles change — debounced 300ms
     let rebuild_handle = app.clone();
     app.listen("profiles-updated", move |_| {
-        if let Some(tray) = rebuild_handle.tray_by_id("main") {
-            if let Ok(new_menu) = build_tray_menu(&rebuild_handle) {
-                let _ = tray.set_menu(Some(new_menu));
+        let handle = rebuild_handle.clone();
+        tauri::async_runtime::spawn(async move {
+            tokio::time::sleep(std::time::Duration::from_millis(300)).await;
+            if let Some(tray) = handle.tray_by_id("main") {
+                if let Ok(new_menu) = build_tray_menu(&handle) {
+                    let _ = tray.set_menu(Some(new_menu));
+                }
             }
-        }
+        });
     });
 
     Ok(())

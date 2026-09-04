@@ -11,13 +11,18 @@ pub async fn show_native_dialog(
         "warning" => MessageDialogKind::Warning,
         _ => MessageDialogKind::Info,
     };
-    let result = app
-        .dialog()
-        .message(&options.message)
-        .title(&options.title)
-        .kind(kind)
-        .buttons(MessageDialogButtons::Ok)
-        .blocking_show();
+    let message = options.message.clone();
+    let title = options.title.clone();
+    let result = tauri::async_runtime::spawn_blocking(move || {
+        app.dialog()
+            .message(&message)
+            .title(&title)
+            .kind(kind)
+            .buttons(MessageDialogButtons::Ok)
+            .blocking_show()
+    })
+    .await
+    .map_err(|e| format!("Task join error: {}", e))?;
     Ok(if result { "ok".into() } else { "cancel".into() })
 }
 

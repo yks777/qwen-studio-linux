@@ -17,14 +17,17 @@
         if (!isNaN(saved)) currentZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, saved));
     } catch(_) {}
     const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let __zoomIpcTimer = 0;
     function applyZoom(scale) {
         currentZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, scale));
-        // Use zoom (layout) not transform — WebKit handles zoom natively with less GPU layers; disable transition on low-GPU
         document.documentElement.style.zoom = String(currentZoom);
         document.body.style.zoom = String(currentZoom);
         try { localStorage.setItem('__qwen_zoom', String(currentZoom)); } catch(_) {}
-        // Also persist to Rust settings when available (for multi-profile sync)
-        try { window.__TAURI__?.core?.invoke?.('set_setting', { key: 'zoom', value: currentZoom }); } catch(_) {}
+        // Debounced IPC: avoid spamming Rust on every wheel tick (P2.1)
+        clearTimeout(__zoomIpcTimer);
+        __zoomIpcTimer = setTimeout(() => {
+            try { window.__TAURI__?.core?.invoke?.('set_setting', { key: 'zoom', value: currentZoom }); } catch(_) {}
+        }, 300);
         if (prefersReducedMotion) {
             document.documentElement.style.transition = 'none';
             document.body.style.transition = 'none';
@@ -52,44 +55,39 @@
         document.addEventListener('keydown', earlyBlocker, true);
         document.addEventListener('keypress', earlyBlocker, true);
         document.addEventListener('beforeinput', earlyBlocker, true);
-        // Also block 'input' capture if site listens there
-        document.addEventListener('input', (e) => {
-            if (isFindActive() && e.target && e.target.id === '__qwen-find-input') {
-                e.stopImmediatePropagation();
-            }
-        }, true);
     })();
 
     // --- B: monkey-patch addEventListener to wrap future document/window keydown listeners ---
-    // If SPA registers its listener AFTER our early blocker, our blocker (registered first)
-    // still wins by registration order. But to be safe against late registrations
-    // that might use a different phase/order, wrap them to check find state first.
+    // Scoped to document/window only (P0 fix: avoid overhead + leak on every element)
     (function patchAddEventListenerForFind() {
         const origAdd = EventTarget.prototype.addEventListener;
+        const wrappedMap = new WeakMap();
         EventTarget.prototype.addEventListener = function(type, listener, options) {
             if ((type === 'keydown' || type === 'keypress' || type === 'beforeinput')
-                && (this === document || this === window || this === document.body || this === document.documentElement)
+                && (this === document || this === window)
                 && typeof listener === 'function') {
                 const wrapped = function(e) {
                     const bar = document.getElementById('__qwen-find-bar');
                     const inp = document.getElementById('__qwen-find-input');
                     const isFindActive = !!(bar && bar.style.display !== 'none' && inp && document.activeElement === inp);
                     if (isFindActive && e.key !== 'Escape' && e.key !== 'F3' && e.key !== 'Enter') {
-                        // Don't let site handler run while typing in find
                         return;
                     }
                     return listener.call(this, e);
                 };
-                // Preserve reference for removeEventListener
+                try { wrappedMap.set(listener, wrapped); } catch(_) {}
                 try { wrapped._qwenOrig = listener; } catch(_) {}
                 return origAdd.call(this, type, wrapped, options);
             }
             return origAdd.call(this, type, listener, options);
         };
-        // Also patch removeEventListener to handle wrapped listeners
         const origRemove = EventTarget.prototype.removeEventListener;
         EventTarget.prototype.removeEventListener = function(type, listener, options) {
-            // Try to find wrapped version — fallback to original
+            const wrapped = wrappedMap.get(listener);
+            if (wrapped) {
+                wrappedMap.delete(listener);
+                return origRemove.call(this, type, wrapped, options);
+            }
             return origRemove.call(this, type, listener, options);
         };
     })();
@@ -638,17 +636,16 @@
     };
 
     // --- observers NÃO destrutivos (não chamam preventDefault) ---
-    // O site (Electron) cola via shim electron.clipboard; deixamos o evento
-    // prosseguir e apenas agendamos o fallback caso ele falhe.
+    // passive:true reduz bloqueio de main thread (P2.2)
     document.addEventListener('paste', function() {
         window.__qwenScheduleFallbackPaste();
-    }, true);
+    }, { capture: true, passive: true });
 
     document.addEventListener('keydown', function(e) {
         if (!(e.ctrlKey || e.metaKey)) return;
         if (e.key !== 'v' && e.key !== 'V') return;
         window.__qwenScheduleFallbackPaste();
-    }, true);
+    }, { capture: true, passive: true });
 
     // --- Find in page (Ctrl+F / F3 / Shift+F3 / Esc) ---
     // Lightweight overlay using window.find(). No WebKit FindController needed.
@@ -696,10 +693,14 @@
             btnPrev.addEventListener('click', () => window.__qwenFindPrev && window.__qwenFindPrev());
             btnNext.addEventListener('click', () => window.__qwenFindNext && window.__qwenFindNext());
             btnClose.addEventListener('click', () => window.__qwenFindClose && window.__qwenFindClose());
+            let __findDebounce = 0;
             findInput.addEventListener('input', () => {
-                findQuery = findInput.value;
-                if (findQuery) doFind(findQuery, false);
-                else clearCounter();
+                clearTimeout(__findDebounce);
+                __findDebounce = setTimeout(() => {
+                    findQuery = findInput.value;
+                    if (findQuery) doFind(findQuery, false);
+                    else clearCounter();
+                }, 150);
             });
             const _findInputKeyHandler = (e) => {
                 // Capture+stopImmediatePropagation blocks chat.qwen.ai's global

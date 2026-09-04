@@ -111,12 +111,12 @@ pub async fn capture_session(app: &AppHandle, window_label: &str, profile_id: &s
         return;
     }
 
-    let cookies = tokio::time::timeout(std::time::Duration::from_secs(5), rx_cookies)
+    let cookies = tokio::time::timeout(std::time::Duration::from_secs(3), rx_cookies)
         .await
         .ok()
         .and_then(|r| r.ok())
         .unwrap_or_default();
-    let local_storage = tokio::time::timeout(std::time::Duration::from_secs(5), rx_ls)
+    let local_storage = tokio::time::timeout(std::time::Duration::from_secs(3), rx_ls)
         .await
         .ok()
         .and_then(|r| r.ok())
@@ -139,7 +139,7 @@ pub async fn capture_session(app: &AppHandle, window_label: &str, profile_id: &s
 
 pub async fn restore_session(app: &AppHandle, window_label: &str, profile_id: &str) {
     let session = match manager::load_session(profile_id) {
-        Some(s) if !s.cookies.is_empty() => s,
+        Some(s) if !s.cookies.is_empty() || !s.local_storage.is_empty() => s,
         _ => return,
     };
     let window = match app.get_webview_window(window_label) {
@@ -169,7 +169,8 @@ pub async fn restore_session(app: &AppHandle, window_label: &str, profile_id: &s
             }
         };
 
-        // Batched restore (8 concurrent) — famous WebKit pattern reduces GTK thread churn and RAM spikes
+        // Batched restore (8 concurrent) — reduces GTK thread churn and RAM spikes
+        // No blocking sleep: with_webview runs on GTK thread, sleep would freeze UI (P0 fix)
         const BATCH: usize = 8;
         for chunk in cookies.chunks(BATCH) {
             for cookie_data in chunk {
@@ -189,8 +190,6 @@ pub async fn restore_session(app: &AppHandle, window_label: &str, profile_id: &s
                     },
                 );
             }
-            // Yield to GTK main loop between batches to avoid blocking UI on low-CPU machines
-            std::thread::sleep(std::time::Duration::from_millis(5));
         }
 
         if total == 0 {

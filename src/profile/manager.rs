@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
+use std::sync::OnceLock;
 
 use serde::{Deserialize, Serialize};
 
@@ -8,10 +9,16 @@ use super::Profile;
 
 pub const PROFILE_MAIN_URL: &str = "https://chat.qwen.ai";
 
+static PROFILES_ROOT_CACHE: OnceLock<PathBuf> = OnceLock::new();
+
 fn profiles_root() -> PathBuf {
-    let dir = crate::config::paths::config_dir().join("profiles");
-    let _ = fs::create_dir_all(&dir);
-    dir
+    PROFILES_ROOT_CACHE
+        .get_or_init(|| {
+            let dir = crate::config::paths::config_dir().join("profiles");
+            let _ = fs::create_dir_all(&dir);
+            dir
+        })
+        .clone()
 }
 
 fn profiles_file() -> PathBuf {

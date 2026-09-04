@@ -53,6 +53,11 @@ impl McpManager {
         self.bridge.is_some()
     }
 
+    #[allow(dead_code)]
+    pub fn is_bridge_alive(&self) -> bool {
+        self.bridge.is_some()
+    }
+
     pub fn bridge_clone(&self) -> Option<Arc<Bridge>> {
         self.bridge.as_ref().map(Arc::clone)
     }

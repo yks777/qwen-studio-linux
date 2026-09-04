@@ -111,6 +111,11 @@ impl Bridge {
         }
     }
 
+    #[allow(dead_code)]
+    pub fn is_alive(&self) -> bool {
+        self._child.id().is_some()
+    }
+
     pub async fn shutdown(&self) {
         let mut pending = self.pending.lock().await;
         for (_, tx) in pending.drain() {
@@ -216,22 +221,31 @@ impl Bridge {
 }
 
 fn resolve_bridge_path(app: Option<&tauri::AppHandle>) -> Result<std::path::PathBuf> {
-    if let Some(app) = app {
-        if let Ok(dir) = app.path().resource_dir() {
-            let p = dir.join("mcp-bridge.mjs");
-            if p.exists() {
-                return Ok(p);
-            }
+    use std::sync::OnceLock;
+    static CACHE: OnceLock<std::path::PathBuf> = OnceLock::new();
+    if let Some(cached) = CACHE.get() {
+        if cached.exists() {
+            return Ok(cached.clone());
         }
     }
-
-    let manifest =
-        std::path::PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/", "mcp-bridge.mjs"));
-    if manifest.exists() {
-        return Ok(manifest);
-    }
-
-    Err(anyhow::anyhow!("MCP bridge not found"))
+    let resolved = (|| {
+        if let Some(app) = app {
+            if let Ok(dir) = app.path().resource_dir() {
+                let p = dir.join("mcp-bridge.mjs");
+                if p.exists() {
+                    return Ok(p);
+                }
+            }
+        }
+        let manifest =
+            std::path::PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/", "mcp-bridge.mjs"));
+        if manifest.exists() {
+            return Ok(manifest);
+        }
+        Err(anyhow::anyhow!("MCP bridge not found"))
+    })()?;
+    let _ = CACHE.set(resolved.clone());
+    Ok(resolved)
 }
 
 fn resolve_node_bin() -> String {
