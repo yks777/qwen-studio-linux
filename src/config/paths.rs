@@ -1,11 +1,18 @@
 use std::path::PathBuf;
+use std::sync::OnceLock;
+
+static CONFIG_DIR_CACHE: OnceLock<PathBuf> = OnceLock::new();
 
 pub fn config_dir() -> PathBuf {
-    let dir = dirs::config_dir()
-        .unwrap_or_else(|| PathBuf::from("."))
-        .join("qwen-studio-linux");
-    let _ = std::fs::create_dir_all(&dir);
-    dir
+    CONFIG_DIR_CACHE
+        .get_or_init(|| {
+            let dir = dirs::config_dir()
+                .unwrap_or_else(|| PathBuf::from("."))
+                .join("qwen-studio-linux");
+            let _ = std::fs::create_dir_all(&dir);
+            dir
+        })
+        .clone()
 }
 
 pub fn settings_file() -> PathBuf {

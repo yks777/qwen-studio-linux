@@ -45,7 +45,7 @@
                             height: 100%;
                             background: var(--primary-color, #007bff);
                             width: 0%;
-                            transition: width 0.3s;
+                            transition: ${window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'none' : 'width 0.3s'};
                         "></div>
                     </div>
                     <p id="qwen-progress-text" style="margin-top: 8px; font-size: 12px; color: var(--text-secondary);"></p>
@@ -87,21 +87,44 @@
         }
     }
 
-    function tryInjectWithRetry(attempt) {
-        if (injectUpdatesTab()) return;
-        if (attempt >= 20) return;
-        setTimeout(() => tryInjectWithRetry(attempt + 1), 100);
-    }
-
-    function maybeInject() {
-        if (window.location.pathname.includes('settings')) {
-            tryInjectWithRetry(0);
+    // Famous SPA optimization: MutationObserver + history hooks instead of 20×100ms polling (saves CPU)
+    let observer = null;
+    function tryInjectOnce() {
+        if (injectUpdatesTab()) {
+            if (observer) { observer.disconnect(); observer = null; }
+            return true;
         }
+        return false;
+    }
+    function maybeInject() {
+        if (!window.location.pathname.includes('settings')) {
+            if (observer) { observer.disconnect(); observer = null; }
+            return;
+        }
+        if (tryInjectOnce()) return;
+        if (observer) return;
+        observer = new MutationObserver(() => {
+            if (tryInjectOnce()) {
+                observer.disconnect();
+                observer = null;
+            }
+        });
+        // Scope to body when available to reduce subtree cost (P3.3)
+        const target = document.body || document.documentElement;
+        observer.observe(target, { childList: true, subtree: true });
+        setTimeout(() => {
+            if (observer) {
+                tryInjectOnce();
+                observer.disconnect();
+                observer = null;
+            }
+        }, 1000);
     }
 
     function ensureBanner(id) {
         let banner = document.querySelector('#' + id);
         if (banner) return banner;
+        const lowGpu = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         banner = document.createElement('div');
         banner.id = id;
         banner.style.cssText = `
@@ -115,8 +138,9 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            z-index: 99999;
+            z-index: 9999;
             font-size: 14px;
+            ${lowGpu ? '' : 'will-change: transform;'}
         `;
         document.body.prepend(banner);
         return banner;
@@ -228,6 +252,11 @@
         let remaining = 60;
         const txt = banner.querySelector('#qwen-restart-text');
         const timer = setInterval(() => {
+            // If banner was removed externally (SPA navigation), clean up timer (P3.3)
+            if (!document.contains(banner)) {
+                clearInterval(timer);
+                return;
+            }
             remaining--;
             if (txt) txt.textContent = `Update installed. Restarting in ${remaining}s...`;
             if (remaining <= 0) {
@@ -235,9 +264,19 @@
                 doRestart();
             }
         }, 1000);
+        // Cleanup if banner removed via MutationObserver
+        const bannerObs = new MutationObserver(() => {
+            if (!document.contains(banner)) {
+                clearInterval(timer);
+                bannerObs.disconnect();
+            }
+        });
+        bannerObs.observe(document.body, { childList: true, subtree: true });
+        setTimeout(() => bannerObs.disconnect(), 65000);
 
         banner.querySelector('#qwen-restart-now')?.addEventListener('click', () => {
             clearInterval(timer);
+            bannerObs.disconnect();
             doRestart();
         });
     }

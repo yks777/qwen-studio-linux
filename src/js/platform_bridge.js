@@ -11,10 +11,86 @@
     // sintéticos (change/input) que poderiam re-triggerar o listener.
     let __pasteInProgress = false;
 
+    // Zoom: persist per-profile via localStorage + respect reduced-motion/low-GPU
+    try {
+        const saved = parseFloat(localStorage.getItem('__qwen_zoom') || '');
+        if (!isNaN(saved)) currentZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, saved));
+    } catch(_) {}
+    const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let __zoomIpcTimer = 0;
     function applyZoom(scale) {
         currentZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, scale));
-        document.body.style.zoom = currentZoom;
+        document.documentElement.style.zoom = String(currentZoom);
+        document.body.style.zoom = String(currentZoom);
+        try { localStorage.setItem('__qwen_zoom', String(currentZoom)); } catch(_) {}
+        // Debounced IPC: avoid spamming Rust on every wheel tick (P2.1)
+        clearTimeout(__zoomIpcTimer);
+        __zoomIpcTimer = setTimeout(() => {
+            try { window.__TAURI__?.core?.invoke?.('set_setting', { key: 'zoom', value: currentZoom }); } catch(_) {}
+        }, 300);
+        if (prefersReducedMotion) {
+            document.documentElement.style.transition = 'none';
+            document.body.style.transition = 'none';
+        }
     }
+    // Apply saved zoom on load
+    if (currentZoom !== 1.0) applyZoom(currentZoom);
+
+    // --- A: global document capture blocker for find (installed early, before SPA listeners) ---
+    // Must be before any SPA registers its own document capture listener.
+    // Checks if find bar is open+focused and blocks the event before site sees it.
+    (function installEarlyFindBlocker() {
+        function isFindActive() {
+            const bar = document.getElementById('__qwen-find-bar');
+            const inp = document.getElementById('__qwen-find-input');
+            return !!(bar && bar.style.display !== 'none' && inp && document.activeElement === inp);
+        }
+        const earlyBlocker = (e) => {
+            if (!isFindActive()) return;
+            // Let Esc/F3/Enter through to our own handlers, block everything else
+            if (e.key === 'Escape' || e.key === 'F3' || e.key === 'Enter') return;
+            // Stop site's document capture listener before it refocuses composer
+            e.stopImmediatePropagation();
+        };
+        document.addEventListener('keydown', earlyBlocker, true);
+        document.addEventListener('keypress', earlyBlocker, true);
+        document.addEventListener('beforeinput', earlyBlocker, true);
+    })();
+
+    // --- B: monkey-patch addEventListener to wrap future document/window keydown listeners ---
+    // Scoped to document/window only (P0 fix: avoid overhead + leak on every element)
+    (function patchAddEventListenerForFind() {
+        const origAdd = EventTarget.prototype.addEventListener;
+        const wrappedMap = new WeakMap();
+        EventTarget.prototype.addEventListener = function(type, listener, options) {
+            if ((type === 'keydown' || type === 'keypress' || type === 'beforeinput')
+                && (this === document || this === window)
+                && typeof listener === 'function') {
+                const wrapped = function(e) {
+                    const bar = document.getElementById('__qwen-find-bar');
+                    const inp = document.getElementById('__qwen-find-input');
+                    const isFindActive = !!(bar && bar.style.display !== 'none' && inp && document.activeElement === inp);
+                    if (isFindActive && e.key !== 'Escape' && e.key !== 'F3' && e.key !== 'Enter') {
+                        return;
+                    }
+                    return listener.call(this, e);
+                };
+                try { wrappedMap.set(listener, wrapped); } catch(_) {}
+                try { wrapped._qwenOrig = listener; } catch(_) {}
+                return origAdd.call(this, type, wrapped, options);
+            }
+            return origAdd.call(this, type, listener, options);
+        };
+        const origRemove = EventTarget.prototype.removeEventListener;
+        EventTarget.prototype.removeEventListener = function(type, listener, options) {
+            const wrapped = wrappedMap.get(listener);
+            if (wrapped) {
+                wrappedMap.delete(listener);
+                return origRemove.call(this, type, wrapped, options);
+            }
+            return origRemove.call(this, type, listener, options);
+        };
+    })();
 
     document.addEventListener('wheel', (e) => {
         if (e.ctrlKey) {
@@ -24,15 +100,99 @@
         }
     }, { passive: false });
 
+    // --- browser shortcuts (F keys, reload, fullscreen, devtools, find) ---
+    // F5 / Ctrl+R soft reload, Ctrl+F5 / Ctrl+Shift+R hard reload,
+    // F11 fullscreen, F12 / Ctrl+Shift+I devtools, Ctrl+F / F3 find.
+    // These supplement native menu accelerators (GTK) for when menu is hidden
+    // or site swallows the event.
     document.addEventListener('keydown', (e) => {
-        if (e.ctrlKey) {
-            if (e.key === '=' || e.key === '+') {
+        // Don't steal typing when focus is inside find bar (except handled keys)
+        const inFind = typeof window.__qwenFindBar !== 'undefined' && window.__qwenFindBar?.isOpen?.() && e.target && e.target.closest && e.target.closest('#__qwen-find-bar');
+        if (inFind && e.key !== 'F5' && e.key !== 'F11' && e.key !== 'F12' && e.key !== 'F3' && e.key !== 'Escape' && e.key !== 'Enter') {
+            return;
+        }
+        const key = e.key;
+        const ctrl = e.ctrlKey || e.metaKey;
+
+        // F5 soft reload (also Ctrl+R native accelerator, but handle F5 here)
+        if (key === 'F5') {
+            if (ctrl) {
+                // Ctrl+F5 hard reload
+                e.preventDefault();
+                try { location.reload(true); } catch(_) { location.reload(); }
+            } else {
+                e.preventDefault();
+                location.reload();
+            }
+            return;
+        }
+        // Ctrl+R soft reload fallback (if menu accelerator missed)
+        if (ctrl && (key === 'r' || key === 'R') && !e.shiftKey) {
+            e.preventDefault();
+            location.reload();
+            return;
+        }
+        // Ctrl+Shift+R hard reload
+        if (ctrl && (key === 'r' || key === 'R') && e.shiftKey) {
+            e.preventDefault();
+            try { location.reload(true); } catch(_) { location.reload(); }
+            return;
+        }
+        // F11 fullscreen
+        if (key === 'F11') {
+            e.preventDefault();
+            // Prefer Rust window fullscreen (covers HeaderBar), fallback to DOM fullscreen
+            if (window.__TAURI__?.core?.invoke) {
+                window.__TAURI__.core.invoke('toggle_fullscreen').catch(() => {
+                    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+                    else document.exitFullscreen?.();
+                });
+            } else {
+                if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+                else document.exitFullscreen?.();
+            }
+            return;
+        }
+        // F12 devtools (also Ctrl+Shift+I via menu accelerator)
+        if (key === 'F12') {
+            e.preventDefault();
+            window.__TAURI__?.core?.invoke?.('toggle_hidden_devtools').catch(()=>{});
+            return;
+        }
+        // Ctrl+F find
+        if (ctrl && (key === 'f' || key === 'F') && !e.shiftKey && !e.altKey) {
+            e.preventDefault();
+            window.__qwenFindOpen && window.__qwenFindOpen();
+            return;
+        }
+        // F3 find next/prev (Shift+F3 = prev)
+        if (key === 'F3') {
+            e.preventDefault();
+            if (window.__qwenFindBar && window.__qwenFindBar.isOpen()) {
+                if (e.shiftKey) window.__qwenFindPrev && window.__qwenFindPrev();
+                else window.__qwenFindNext && window.__qwenFindNext();
+            } else {
+                window.__qwenFindOpen && window.__qwenFindOpen();
+            }
+            return;
+        }
+        // Ctrl+Shift+I devtools fallback (menu already has accelerator)
+        if (ctrl && e.shiftKey && (key === 'I' || key === 'i')) {
+            // let menu handle, but also ensure invoke if menu hidden
+            // don't preventDefault here to allow menu accelerator
+            window.__TAURI__?.core?.invoke?.('toggle_hidden_devtools').catch(()=>{});
+            return;
+        }
+
+        // Zoom (Ctrl+Plus/Minus/0) — keep after browser keys
+        if (ctrl) {
+            if (key === '=' || key === '+') {
                 e.preventDefault();
                 applyZoom(currentZoom + ZOOM_STEP);
-            } else if (e.key === '-') {
+            } else if (key === '-') {
                 e.preventDefault();
                 applyZoom(currentZoom - ZOOM_STEP);
-            } else if (e.key === '0') {
+            } else if (key === '0') {
                 e.preventDefault();
                 applyZoom(1.0);
             }
@@ -476,17 +636,182 @@
     };
 
     // --- observers NÃO destrutivos (não chamam preventDefault) ---
-    // O site (Electron) cola via shim electron.clipboard; deixamos o evento
-    // prosseguir e apenas agendamos o fallback caso ele falhe.
+    // passive:true reduz bloqueio de main thread (P2.2)
     document.addEventListener('paste', function() {
         window.__qwenScheduleFallbackPaste();
-    }, true);
+    }, { capture: true, passive: true });
 
     document.addEventListener('keydown', function(e) {
         if (!(e.ctrlKey || e.metaKey)) return;
         if (e.key !== 'v' && e.key !== 'V') return;
         window.__qwenScheduleFallbackPaste();
-    }, true);
+    }, { capture: true, passive: true });
+
+    // --- Find in page (Ctrl+F / F3 / Shift+F3 / Esc) ---
+    // Lightweight overlay using window.find(). No WebKit FindController needed.
+    (function() {
+        let findQuery = '';
+        let findBar = null;
+        let findInput = null;
+        let findCounter = null;
+
+        function ensureFindBar() {
+            if (findBar) return;
+            findBar = document.createElement('div');
+            findBar.id = '__qwen-find-bar';
+            findBar.setAttribute('role', 'search');
+            Object.assign(findBar.style, {
+                position: 'fixed',
+                bottom: '16px',
+                right: '16px',
+                zIndex: '2147483647',
+                display: 'none',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 10px',
+                background: 'rgba(32,32,32,0.95)',
+                color: '#eee',
+                borderRadius: '10px',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+                fontFamily: 'system-ui, sans-serif',
+                fontSize: '13px',
+                border: '1px solid rgba(255,255,255,0.12)',
+            });
+            findBar.innerHTML = ''
+                + '<input id="__qwen-find-input" type="text" placeholder="Localizar" spellcheck="false" autocomplete="off"'
+                + ' style="width:200px;padding:6px 8px;border-radius:6px;border:1px solid #555;background:#1e1e1e;color:#eee;outline:none;font-size:13px">'
+                + '<span id="__qwen-find-counter" style="min-width:24px;text-align:center;opacity:0.7;font-size:12px"></span>'
+                + '<button id="__qwen-find-prev" title="Anterior (Shift+F3)" style="padding:4px 8px;border-radius:6px;border:1px solid #555;background:#2a2a2a;color:#eee;cursor:pointer">▲</button>'
+                + '<button id="__qwen-find-next" title="Próximo (F3)" style="padding:4px 8px;border-radius:6px;border:1px solid #555;background:#2a2a2a;color:#eee;cursor:pointer">▼</button>'
+                + '<button id="__qwen-find-close" title="Fechar (Esc)" style="padding:4px 8px;border-radius:6px;border:1px solid #555;background:#2a2a2a;color:#eee;cursor:pointer">✕</button>';
+            (document.body || document.documentElement).appendChild(findBar);
+            findInput = findBar.querySelector('#__qwen-find-input');
+            findCounter = findBar.querySelector('#__qwen-find-counter');
+            const btnPrev = findBar.querySelector('#__qwen-find-prev');
+            const btnNext = findBar.querySelector('#__qwen-find-next');
+            const btnClose = findBar.querySelector('#__qwen-find-close');
+            btnPrev.addEventListener('click', () => window.__qwenFindPrev && window.__qwenFindPrev());
+            btnNext.addEventListener('click', () => window.__qwenFindNext && window.__qwenFindNext());
+            btnClose.addEventListener('click', () => window.__qwenFindClose && window.__qwenFindClose());
+            let __findDebounce = 0;
+            findInput.addEventListener('input', () => {
+                clearTimeout(__findDebounce);
+                __findDebounce = setTimeout(() => {
+                    findQuery = findInput.value;
+                    if (findQuery) doFind(findQuery, false);
+                    else clearCounter();
+                }, 150);
+            });
+            const _findInputKeyHandler = (e) => {
+                // Capture+stopImmediatePropagation blocks chat.qwen.ai's global
+                // capture listener that auto-focuses the composer on every keydown.
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+                    if (e.shiftKey) window.__qwenFindPrev && window.__qwenFindPrev();
+                    else window.__qwenFindNext && window.__qwenFindNext();
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+                    window.__qwenFindClose && window.__qwenFindClose();
+                } else {
+                    e.stopPropagation();
+                    if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+                }
+            };
+            findInput.addEventListener('keydown', _findInputKeyHandler, true);
+            // Also block keypress/beforeinput in capture — some SPA listeners use them
+            findInput.addEventListener('keypress', (e) => {
+                e.stopPropagation();
+                if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+            }, true);
+            findInput.addEventListener('beforeinput', (e) => {
+                e.stopPropagation();
+                if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+            }, true);
+            findInput.addEventListener('mousedown', (e) => e.stopPropagation());
+            // Retain focus if SPA steals it (blur -> refocus)
+            let _findFocusGuard = 0;
+            findInput.addEventListener('blur', () => {
+                if (!findBar || findBar.style.display === 'none') return;
+                if (_findFocusGuard) return;
+                _findFocusGuard = 1;
+                setTimeout(() => {
+                    _findFocusGuard = 0;
+                    if (findBar.style.display !== 'none' && document.activeElement !== findInput) {
+                        try { findInput.focus({ preventScroll: true }); } catch(_) { try { findInput.focus(); } catch(_) {} }
+                    }
+                }, 0);
+            });
+            findBar.addEventListener('mousedown', (e) => {
+                if (e.target !== findInput) e.preventDefault();
+            });
+        }
+
+        function clearCounter() { if (findCounter) findCounter.textContent = ''; }
+
+        function doFind(query, backwards) {
+            if (!query) return false;
+            try {
+                // window.find is synchronous; use aSelection wrapping
+                const found = window.find(query, false, backwards, true, false, false, false);
+                if (findCounter) findCounter.textContent = found ? '•' : '—';
+                return found;
+            } catch(_) { return false; }
+        }
+
+        window.__qwenFindOpen = function() {
+            ensureFindBar();
+            findBar.style.display = 'flex';
+            // WebKitGTK needs a frame after display:flex before focus is accepted;
+            // SPA also re-focuses composer in a microtask, so defer.
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    try { findInput.focus({ preventScroll: true }); } catch(_) { findInput.focus(); }
+                    try { findInput.select(); } catch(_) {}
+                    if (findInput.value) {
+                        findQuery = findInput.value;
+                        doFind(findQuery, false);
+                    }
+                }, 0);
+            });
+        };
+        window.__qwenFindClose = function() {
+            if (findBar) findBar.style.display = 'none';
+            try { window.getSelection()?.removeAllRanges(); } catch(_) {}
+            clearCounter();
+        };
+        window.__qwenFindNext = function() {
+            if (findInput) findQuery = findInput.value;
+            if (!findQuery) return;
+            doFind(findQuery, false);
+        };
+        window.__qwenFindPrev = function() {
+            if (findInput) findQuery = findInput.value;
+            if (!findQuery) return;
+            doFind(findQuery, true);
+        };
+        window.__qwenFindBar = {
+            isOpen: () => !!(findBar && findBar.style.display !== 'none'),
+        };
+
+        // Esc closes find bar or stops loading (browser parity)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (findBar && findBar.style.display !== 'none') {
+                    e.preventDefault();
+                    window.__qwenFindClose();
+                    return;
+                }
+                // If page is still loading, stop (browser Stop)
+                if (document.readyState === 'loading') {
+                    try { window.stop(); } catch(_) {}
+                }
+            }
+        }, true);
+    })();
 
     window.open = function(url, target, features) {
         if (url && (url.startsWith('http://') || url.startsWith('https://'))) {

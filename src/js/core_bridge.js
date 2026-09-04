@@ -63,13 +63,25 @@
 
     window.electron = {
         ipcRenderer: {
-            on: (channel, callback) => {
-                window.__TAURI__.event.listen('event_from_main', (event) => {
+            _listeners: new Map(),
+            on: function(channel, callback) {
+                // Dedup: avoid leaking a new Tauri listen per call (P3.4)
+                if (this._listeners.has(channel)) return;
+                const unlistenPromise = window.__TAURI__.event.listen('event_from_main', (event) => {
                     if (event.payload?.type === channel) {
                         callback(event.payload.payload);
                     }
                 });
+                this._listeners.set(channel, unlistenPromise);
             },
+            off: function(channel) {
+                const p = this._listeners.get(channel);
+                if (p) {
+                    p.then(fn => { try { fn(); } catch(_) {} });
+                    this._listeners.delete(channel);
+                }
+            },
+            removeListener: function(channel) { return this.off(channel); },
             send: (channel, data) => {
                 window.__TAURI__.event.emit('event_to_main', { type: channel, payload: data });
             },

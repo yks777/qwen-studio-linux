@@ -1,6 +1,6 @@
 [package]
 name = "qwen-studio-linux"
-version = "1.0.1"
+version = "1.2.0"
 description = "Desktop AI assistant wrapper for Qwen Chat"
 authors = ["yks777"]
 license = "MIT"

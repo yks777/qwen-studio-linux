@@ -20,11 +20,32 @@ pub async fn handle_shortcut(app: tauri::AppHandle, action: String) -> Result<()
                 if let Err(e) = w.eval("location.reload();") {
                     log::warn!("[Shortcuts] reload eval failed: {}", e);
                 }
+<<<<<<< HEAD
+=======
+            }
+        }
+        "hard_reload" => {
+            if let Some(w) = crate::app::window_utils::active_webview_window(&app) {
+                if let Err(e) = w.eval("location.reload(true);") {
+                    log::warn!("[Shortcuts] hard_reload eval failed: {}", e);
+                }
+>>>>>>> dev
             }
         }
         "devtools" => {
             let _ = super::window::toggle_hidden_devtools(app).await;
         }
+<<<<<<< HEAD
+=======
+        "fullscreen" => {
+            let _ = super::window::toggle_fullscreen(app).await;
+        }
+        "find" => {
+            if let Some(w) = crate::app::window_utils::active_webview_window(&app) {
+                let _ = w.eval("window.__qwenFindOpen && window.__qwenFindOpen();");
+            }
+        }
+>>>>>>> dev
         "zoom_in" => apply_zoom(
             &app,
             "document.body.style.zoom = Math.min(2.0, parseFloat(document.body.style.zoom||'1') + 0.1);",

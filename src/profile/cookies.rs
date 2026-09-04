@@ -111,12 +111,20 @@ pub async fn capture_session(app: &AppHandle, window_label: &str, profile_id: &s
         return;
     }
 
+<<<<<<< HEAD
     let cookies = tokio::time::timeout(std::time::Duration::from_secs(5), rx_cookies)
+=======
+    let cookies = tokio::time::timeout(std::time::Duration::from_secs(3), rx_cookies)
+>>>>>>> dev
         .await
         .ok()
         .and_then(|r| r.ok())
         .unwrap_or_default();
+<<<<<<< HEAD
     let local_storage = tokio::time::timeout(std::time::Duration::from_secs(5), rx_ls)
+=======
+    let local_storage = tokio::time::timeout(std::time::Duration::from_secs(3), rx_ls)
+>>>>>>> dev
         .await
         .ok()
         .and_then(|r| r.ok())
@@ -139,7 +147,7 @@ pub async fn capture_session(app: &AppHandle, window_label: &str, profile_id: &s
 
 pub async fn restore_session(app: &AppHandle, window_label: &str, profile_id: &str) {
     let session = match manager::load_session(profile_id) {
-        Some(s) if !s.cookies.is_empty() => s,
+        Some(s) if !s.cookies.is_empty() || !s.local_storage.is_empty() => s,
         _ => return,
     };
     let window = match app.get_webview_window(window_label) {
@@ -169,6 +177,7 @@ pub async fn restore_session(app: &AppHandle, window_label: &str, profile_id: &s
             }
         };
 
+<<<<<<< HEAD
         for cookie_data in &cookies {
             let mut cookie = build_cookie(cookie_data);
             let state = state.clone();
@@ -185,6 +194,29 @@ pub async fn restore_session(app: &AppHandle, window_label: &str, profile_id: &s
                     }
                 },
             );
+=======
+        // Batched restore (8 concurrent) — reduces GTK thread churn and RAM spikes
+        // No blocking sleep: with_webview runs on GTK thread, sleep would freeze UI (P0 fix)
+        const BATCH: usize = 8;
+        for chunk in cookies.chunks(BATCH) {
+            for cookie_data in chunk {
+                let mut cookie = build_cookie(cookie_data);
+                let state = state.clone();
+                manager.add_cookie(
+                    &mut cookie,
+                    None::<&Cancellable>,
+                    move |_res: Result<(), glib::Error>| {
+                        let mut g = state.lock().unwrap_or_else(|e| e.into_inner());
+                        g.0 += 1;
+                        if g.0 >= total {
+                            if let Some(tx) = g.1.take() {
+                                let _ = tx.send(());
+                            }
+                        }
+                    },
+                );
+            }
+>>>>>>> dev
         }
 
         if total == 0 {

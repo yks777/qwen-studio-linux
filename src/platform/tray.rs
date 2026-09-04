@@ -2,16 +2,22 @@ use tauri::{
     image::Image,
     menu::{Menu, MenuItem, MenuItemBuilder, Submenu, SubmenuBuilder},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
+    Listener,
 };
 
 use crate::profile::manager;
 
-pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
+fn build_tray_menu(app: &tauri::AppHandle) -> Result<Menu<tauri::Wry>, Box<dyn std::error::Error>> {
     let new_window_item = MenuItem::with_id(app, "new_window", "New Window", true, None::<&str>)?;
+<<<<<<< HEAD
 
     let open_panel_item =
         MenuItemBuilder::with_id("profiles_panel", "Abrir painel dos perfils").build(app)?;
 
+=======
+    let open_panel_item =
+        MenuItemBuilder::with_id("profiles_panel", "Abrir painel dos perfils").build(app)?;
+>>>>>>> dev
     let mut owned: Vec<tauri::menu::MenuItem<tauri::Wry>> = Vec::new();
     for p in manager::load() {
         owned.push(MenuItemBuilder::with_id(format!("open-profile:{}", p.id), p.name).build(app)?);
@@ -20,6 +26,7 @@ pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
         .iter()
         .map(|i| i as &dyn tauri::menu::IsMenuItem<tauri::Wry>)
         .collect();
+<<<<<<< HEAD
 
     let open_profile_sub: Submenu<tauri::Wry> = SubmenuBuilder::new(app, "Abrir perfil")
         .items(&item_refs)
@@ -27,6 +34,12 @@ pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
 
     let create_item = MenuItemBuilder::with_id("create_profile", "Criar perfil").build(app)?;
 
+=======
+    let open_profile_sub: Submenu<tauri::Wry> = SubmenuBuilder::new(app, "Abrir perfil")
+        .items(&item_refs)
+        .build()?;
+    let create_item = MenuItemBuilder::with_id("create_profile", "Criar perfil").build(app)?;
+>>>>>>> dev
     let profiles_sub: Submenu<tauri::Wry> = SubmenuBuilder::new(app, "Perfils")
         .item(&open_panel_item)
         .separator()
@@ -34,15 +47,22 @@ pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
         .separator()
         .item(&create_item)
         .build()?;
-
     let show_item = MenuItem::with_id(app, "show", "Show", true, None::<&str>)?;
     let quit_item = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
+    Menu::with_items(app, &[&new_window_item, &profiles_sub, &show_item, &quit_item])
+        .map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
+}
 
+<<<<<<< HEAD
     let menu = Menu::with_items(
         app,
         &[&new_window_item, &profiles_sub, &show_item, &quit_item],
     )?;
 
+=======
+pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
+    let menu = build_tray_menu(app)?;
+>>>>>>> dev
     let icon_bytes = include_bytes!("../../icons/icon.png");
     let img = image::load_from_memory(icon_bytes)
         .unwrap_or_else(|e| {
@@ -119,6 +139,20 @@ pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
             }
         })
         .build(app)?;
+
+    // Rebuild tray menu when profiles change — debounced 300ms
+    let rebuild_handle = app.clone();
+    app.listen("profiles-updated", move |_| {
+        let handle = rebuild_handle.clone();
+        tauri::async_runtime::spawn(async move {
+            tokio::time::sleep(std::time::Duration::from_millis(300)).await;
+            if let Some(tray) = handle.tray_by_id("main") {
+                if let Ok(new_menu) = build_tray_menu(&handle) {
+                    let _ = tray.set_menu(Some(new_menu));
+                }
+            }
+        });
+    });
 
     Ok(())
 }

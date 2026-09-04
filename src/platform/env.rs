@@ -25,12 +25,33 @@ pub fn configure_environment() {
         }
     }
 
+<<<<<<< HEAD
     // Compositing: permite override via env var para evitar tela branca em drivers antigos.
     // QWEN_DISABLE_COMPOSITING=1 força CPU (seguro), =0 força GPU (mais rápido).
     // Se não definido, default = GPU off apenas quando necessário (mantém DMABUF off).
     let disable_compositing = std::env::var("QWEN_DISABLE_COMPOSITING")
         .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
         .unwrap_or(false);
+=======
+    // Compositing: auto-detect llvmpipe/no-GPU + low-GPU mode — famous low-end pattern.
+    // QWEN_DISABLE_COMPOSITING=1 força CPU (seguro), =0 força GPU. Se não definido, auto-detecta.
+    let disable_compositing = std::env::var("QWEN_DISABLE_COMPOSITING")
+        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+        .unwrap_or_else(|_| {
+            // Auto-fallback for machines without discrete/integrated GPU (llvmpipe, VMs, old drivers)
+            let llvmpipe = std::env::var("LIBGL_ALWAYS_SOFTWARE").is_ok()
+                || std::fs::read_to_string("/proc/cmdline")
+                    .map(|s| s.contains("nomodeset"))
+                    .unwrap_or(false)
+                || std::env::var("QWEN_LOW_GPU")
+                    .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+                    .unwrap_or(false);
+            if llvmpipe {
+                log::info!("[Env] Low-GPU detected (llvmpipe/nomodeset/QWEN_LOW_GPU), forcing compositing off");
+            }
+            llvmpipe
+        });
+>>>>>>> dev
     if disable_compositing {
         std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
     } else {

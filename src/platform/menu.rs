@@ -31,19 +31,54 @@ pub fn build_app_menu(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::
                 .build(app)?,
         )
         .item(&PredefinedMenuItem::select_all(app, None)?)
+        .separator()
+        .item(
+            &MenuItemBuilder::with_id("find", "Find")
+                .accelerator("CmdOrCtrl+F")
+                .build(app)?,
+        )
         .build()?;
 
     let view_menu = SubmenuBuilder::new(app, "View")
-        .item(&MenuItemBuilder::with_id("reload", "Reload").build(app)?)
-        .item(&MenuItemBuilder::with_id("devtools", "Toggle DevTools").build(app)?)
+        .item(
+            &MenuItemBuilder::with_id("reload", "Reload")
+                .accelerator("CmdOrCtrl+R")
+                .build(app)?,
+        )
+        .item(
+            &MenuItemBuilder::with_id("hard_reload", "Hard Reload")
+                .accelerator("CmdOrCtrl+Shift+R")
+                .build(app)?,
+        )
+        .item(
+            &MenuItemBuilder::with_id("devtools", "Toggle DevTools")
+                .accelerator("CmdOrCtrl+Shift+I")
+                .build(app)?,
+        )
         .separator()
-        .item(&MenuItemBuilder::with_id("zoom_in", "Zoom In").build(app)?)
-        .item(&MenuItemBuilder::with_id("zoom_out", "Zoom Out").build(app)?)
-        .item(&MenuItemBuilder::with_id("zoom_reset", "Reset Zoom").build(app)?)
+        .item(
+            &MenuItemBuilder::with_id("zoom_in", "Zoom In")
+                .accelerator("CmdOrCtrl+Plus")
+                .build(app)?,
+        )
+        .item(
+            &MenuItemBuilder::with_id("zoom_out", "Zoom Out")
+                .accelerator("CmdOrCtrl+-")
+                .build(app)?,
+        )
+        .item(
+            &MenuItemBuilder::with_id("zoom_reset", "Reset Zoom")
+                .accelerator("CmdOrCtrl+0")
+                .build(app)?,
+        )
         .build()?;
 
     let window_menu = SubmenuBuilder::new(app, "Window")
-        .item(&MenuItemBuilder::with_id("new_window", "New Window").build(app)?)
+        .item(
+            &MenuItemBuilder::with_id("new_window", "New Window")
+                .accelerator("CmdOrCtrl+N")
+                .build(app)?,
+        )
         .item(&PredefinedMenuItem::fullscreen(app, None)?)
         .build()?;
 
@@ -153,6 +188,16 @@ pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                     let _ = w.eval("location.reload();");
                 }
             }
+            "hard_reload" => {
+                if let Some(w) = crate::app::window_utils::active_webview_window(app) {
+                    let _ = w.eval("location.reload(true);");
+                }
+            }
+            "find" => {
+                if let Some(w) = crate::app::window_utils::active_webview_window(app) {
+                    let _ = w.eval("window.__qwenFindOpen && window.__qwenFindOpen();");
+                }
+            }
             "devtools" => {
                 if let Some(w) = crate::app::window_utils::active_webview_window(app) {
                     if w.is_devtools_open() {
@@ -202,6 +247,9 @@ pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                     }
                 });
             }
+            "documentation" => {
+                let _ = open::that("https://github.com/yks777/qwen-studio-linux#readme");
+            }
             "github" => {
                 let _ = open::that("https://github.com/yks777/qwen-studio-linux");
             }
@@ -220,13 +268,16 @@ pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
-    // Rebuild the menu (notably the Perfils submenu) whenever profiles change.
+    // Rebuild the menu (notably the Perfils submenu) whenever profiles change — debounced 300ms
     let rebuild_handle = app.clone();
     app.listen("profiles-updated", move |_| {
         let handle = rebuild_handle.clone();
-        let closure_handle = handle.clone();
-        let _ = handle.run_on_main_thread(move || {
-            let _ = build_app_menu(&closure_handle);
+        tauri::async_runtime::spawn(async move {
+            tokio::time::sleep(std::time::Duration::from_millis(300)).await;
+            let closure_handle = handle.clone();
+            let _ = handle.run_on_main_thread(move || {
+                let _ = build_app_menu(&closure_handle);
+            });
         });
     });
 
