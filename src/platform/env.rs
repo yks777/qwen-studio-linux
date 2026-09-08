@@ -1,5 +1,3 @@
-use std::env;
-
 pub fn configure_environment() {
     // KDE Plasma: força x11 (XWayland) incondicional para wry/GTK exibir GtkMenuBar clássico.
     // Igual ao que funcionava em qwen-studio-linux-fix-error/src/platform/env.rs:2 (set_var x11).
