@@ -69,10 +69,7 @@ pub fn open_profile_picker(app: &AppHandle) -> Result<(), Box<dyn std::error::Er
     .resizable(true)
     .decorations(true)
     .visible(false)
-<<<<<<< HEAD
     .initialization_script(&picker_script)
-=======
->>>>>>> bec7255 (Fix: Upload medias e username)
     .build()?;
 
     // Fallback: force-show the picker if the page's JS show() never fires,
@@ -236,15 +233,7 @@ fn ensure_session_capture(app: &AppHandle) {
 
     let app = app.clone();
     tauri::async_runtime::spawn(async move {
-<<<<<<< HEAD
         let mut interval = tokio::time::interval(std::time::Duration::from_secs(120));
-=======
-<<<<<<< HEAD
-        let mut interval = tokio::time::interval(std::time::Duration::from_secs(600));
-=======
-        let mut interval = tokio::time::interval(std::time::Duration::from_secs(60));
->>>>>>> 0f81055 (Melhorias)
->>>>>>> a2331e3 (Melhorias)
         loop {
             interval.tick().await;
             let entries = {
