@@ -282,12 +282,6 @@
         const CHUNK = 4 * 1024 * 1024; // 4 MiB
         const parts = [];
         if(window.__QWEN_DEBUG) console.log(`[Qwen Studio] iniciando transferência binária: ${name} (${size} bytes, mime=${mime})`);
-=======
-        const CHUNK = 4 * 1024 * 1024; // 4 MiB
-        const parts = [];
-        console.log(`[Qwen Studio] iniciando transferência binária: ${name} (${size} bytes, mime=${mime})`);
->>>>>>> c0c2f30 (Fix: Upload medias e username)
->>>>>>> a2331e3 (Melhorias)
         try {
             for (let off = 0; off < size; off += CHUNK) {
                 const len = Math.min(CHUNK, size - off);
@@ -522,7 +516,5 @@
         return null;
     };
 
-=======
->>>>>>> 0f81055 (Melhorias)
     if(window.__QWEN_DEBUG) console.log('[Qwem Studio] Platform bridge loaded');
 })();
