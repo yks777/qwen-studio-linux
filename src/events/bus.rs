@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 
 use tauri::{Emitter, Listener};
-use tokio::sync::broadcast;
 
 const ALLOWED_EVENT_TYPES: &[&str] = &[
     "theme_changed",
