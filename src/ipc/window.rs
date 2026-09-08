@@ -23,13 +23,15 @@ pub async fn create_new_window(app: tauri::AppHandle) -> Result<String, String> 
             .user_agent(USER_AGENT)
             .initialization_script(&script)
             .enable_clipboard_access()
-            .on_navigation(|url| crate::webview::navigation::is_allowed(url.as_ref()));
+            .on_navigation(|url| crate::webview::navigation::should_allow_inline(url.as_ref()));
 
     if let Some(profile) = crate::app::window_utils::focused_profile_async(&app).await {
         builder = builder.data_directory(crate::profile::manager::data_dir_for(&profile.id));
     }
 
     let window = builder.build().map_err(|e| e.to_string())?;
+
+    crate::webview::itp::disable_itp_for(&window);
 
     crate::app::window_utils::attach_file_drop_handler(&window);
 
@@ -95,6 +97,9 @@ pub async fn open_external_link(app: tauri::AppHandle, url: String) -> Result<bo
     let parsed = url::Url::parse(&url).map_err(|e| e.to_string())?;
     if parsed.host_str().is_none() {
         return Ok(false);
+    }
+    if crate::webview::navigation::is_preview_url(&url) {
+        return crate::webview::preview::open_preview_window(app, url).await;
     }
     if crate::auth::domains::is_auth_url(&url) {
         if let Some(w) = crate::app::window_utils::active_webview_window_async(&app).await {

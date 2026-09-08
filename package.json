@@ -6,6 +6,7 @@
   "scripts": {
     "tauri": "tauri",
     "build:frontend": "node scripts/build-frontend.mjs",
+    "tauri:run:dev": "tauri dev",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",
     "tauri:build:deb": "tauri build --bundles deb",

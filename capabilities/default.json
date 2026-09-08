@@ -2,9 +2,9 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Default capabilities for Qwem Studio Linux",
-  "windows": ["main-*", "window-*", "profile-picker"],
+  "windows": ["main-*", "window-*", "profile-picker", "hidden-*", "preview-*"],
   "remote": {
-    "urls": ["https://chat.qwen.ai", "https://*.qwen.ai", "https://*.aliyun.com", "https://accounts.google.com", "https://oauth2.googleapis.com"]
+    "urls": ["https://chat.qwen.ai", "https://*.qwen.ai", "https://*.aliyun.com", "https://accounts.google.com", "https://oauth2.googleapis.com", "https://qwenlm.io", "https://*.qwenlm.io"]
   },
   "permissions": [
     "core:default",

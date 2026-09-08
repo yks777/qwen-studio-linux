@@ -16,3 +16,20 @@ pub fn is_allowed(url: &str) -> bool {
     }
     is_auth_url_strict(url)
 }
+
+pub fn is_preview_url(url: &str) -> bool {
+    let Ok(parsed) = url::Url::parse(url) else {
+        return false;
+    };
+    let Some(host) = parsed.host_str() else {
+        return false;
+    };
+    host == "qwenlm.io" || host.ends_with(".qwenlm.io")
+}
+
+pub fn should_allow_inline(url: &str) -> bool {
+    if is_allowed(url) || is_preview_url(url) {
+        return true;
+    }
+    url.starts_with("about:") || url.starts_with("data:") || url.starts_with("blob:")
+}

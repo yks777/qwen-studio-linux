@@ -8,11 +8,15 @@ pub fn build_init_script() -> String {
         .get_or_init(|| {
             let pre_load_script = r#"
         (function() {
-            try { document.documentElement.style.backgroundColor = '#0f1115'; } catch (e) {}
             var hostname = window.location.hostname;
             var pathname = window.location.pathname;
             var isLoginPage = pathname.includes('login') || pathname.includes('auth') || pathname.includes('callback') || pathname.includes('oauth');
-            if (hostname !== 'chat.qwen.ai' || isLoginPage) return;
+            if (hostname === 'chat.qwen.ai' && !isLoginPage) {
+                try { document.documentElement.style.backgroundColor = '#0f1115'; } catch (e) {}
+            } else {
+                try { document.documentElement.style.backgroundColor = ''; document.documentElement.style.background = ''; } catch (e) {}
+                if (hostname !== 'chat.qwen.ai' || isLoginPage) return;
+            }
             try {
                 var qwenCoreEntry = {
                     id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",

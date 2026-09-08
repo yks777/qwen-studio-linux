@@ -509,7 +509,31 @@
         window.__qwenScheduleFallbackPaste();
     }, true);
 
+    // --- fallback anti-loading infinito para preview qwenlm.io ---
+    setInterval(function() {
+        try {
+            var frame = document.querySelector('iframe[src*="qwenlm.io"]');
+            var loading = document.querySelector('.artifact-iframe-loading');
+            if (frame && loading && loading.style.display !== 'none') {
+                var hasContent = (frame.contentDocument && frame.contentDocument.readyState === 'complete') || (frame.src && frame.src.indexOf('qwenlm.io') !== -1);
+                if (hasContent) {
+                    loading.style.display = 'none';
+                    frame.style.display = 'block';
+                    if(window.__QWEN_DEBUG) console.log('[Qwen Studio] artifact spinner hidden, iframe forced visible');
+                }
+            }
+        } catch (_) {}
+    }, 1000);
+
     window.open = function(url, target, features) {
+        if (url && typeof url === 'string' && url.includes('qwenlm.io')) {
+            if (window.__TAURI__?.core?.invoke) {
+                window.__TAURI__.core.invoke('open_preview_window', { url }).catch(() => {});
+            } else if (window.electronAPI?.open_external_link) {
+                window.electronAPI.open_external_link(url);
+            }
+            return { closed: false, close: function(){}, postMessage: function(){}, focus: function(){}, closed:false };
+        }
         if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
             window.electronAPI?.open_external_link?.(url);
         }

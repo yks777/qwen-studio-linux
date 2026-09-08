@@ -52,6 +52,7 @@ pub fn run() {
             ipc::window::open_devtool,
             ipc::window::toggle_hidden_devtools,
             ipc::window::open_external_link,
+            webview::preview::open_preview_window,
             ipc::window::switch_theme,
             ipc::window::switch_ln,
             ipc::window::update_title_bar_for_system_theme,

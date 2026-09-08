@@ -126,7 +126,7 @@ pub fn open_profile_window(
     .data_directory(data_dir)
     .initialization_script(&init_script)
     .enable_clipboard_access()
-    .on_navigation(|url| crate::webview::navigation::is_allowed(url.as_ref()))
+    .on_navigation(|url| crate::webview::navigation::should_allow_inline(url.as_ref()))
     .on_page_load(move |w, payload| {
         if payload.event() == PageLoadEvent::Finished && !restored.swap(true, Ordering::SeqCst) {
             if let Some(session) = manager::load_session(&pid) {
@@ -138,6 +138,8 @@ pub fn open_profile_window(
         }
     })
     .build()?;
+
+    crate::webview::itp::disable_itp_for(&_window);
 
     // Em WebKitGTK ≥2.50.2 o paste nativo (texto+imagem) já funciona via
     // PredefinedMenuItem::paste/cut/copy. Esconder a menubar com hide_menu()
