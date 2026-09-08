@@ -1,0 +1,60 @@
+[package]
+name = "qwen-studio-linux"
+version = "1.0.2"
+description = "Desktop AI assistant wrapper for Qwen Chat"
+authors = ["yks777"]
+license = "MIT"
+repository = "https://github.com/yks777/qwen-studio-linux"
+edition = "2021"
+
+[lib]
+name = "qwen_studio_linux"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon", "devtools"] }
+tauri-plugin-log = "2"
+tauri-plugin-shell = "2"
+tauri-plugin-store = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-clipboard-manager = "2"
+tauri-plugin-deep-link = "2"
+tauri-plugin-updater = "2"
+tauri-plugin-mcp-bridge = "0.11"
+webkit2gtk = { version = "2", features = ["v2_40"] }
+soup3 = "0.5"
+javascriptcore-rs = "1"
+gio = "0.18"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "sync", "process", "fs"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1"
+dirs = "5"
+url = "2"
+open = "5"
+base64 = "0.22"
+image = { version = "0.25", default-features = false, features = ["png"] }
+arboard = { version = "3", features = ["wayland-data-control"] }
+notify-rust = "4"
+gtk = { version = "0.18", package = "gtk" }
+glib = { version = "0.18", package = "glib" }
+log = "0.4"
+reqwest = { version = "0.12", features = ["json", "stream", "rustls-tls"], default-features = false }
+futures-util = "0.3"
+futures = "0.3"
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
+panic = "abort"
+debug = 0
+<<<<<<< HEAD
+opt-level = "z"
+overflow-checks = false
+=======
+>>>>>>> 0f81055 (Melhorias)

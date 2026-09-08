@@ -1,0 +1,55 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nicedoc/tauri/v2/core/tauri-config-schema/schema.json",
+  "productName": "Qwen Studio Linux",
+  "version": "1.0.2",
+  "identifier": "com.qwen.studio.linux",
+  "build": {
+    "frontendDist": "./dist",
+    "beforeBuildCommand": "npm run build:frontend"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "security": {
+      "csp": "default-src 'self' https://chat.qwen.ai https://*.qwen.ai https://*.aliyun.com https://accounts.google.com https://oauth2.googleapis.com; script-src 'self' 'unsafe-inline' https://chat.qwen.ai; style-src 'self' 'unsafe-inline' https://chat.qwen.ai; img-src 'self' data: blob: https:; connect-src 'self' ipc: http://ipc.localhost https://chat.qwen.ai https://*.qwen.ai https://*.aliyun.com https://accounts.google.com https://oauth2.googleapis.com; font-src 'self' data: https:; object-src 'none'; base-uri 'self'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "icon": [
+      "icons/icon.png"
+    ],
+    "targets": "all",
+    "resources": ["mcp-bridge.mjs"],
+    "category": "SocialNetworking",
+    "linux": {
+      "deb": {
+        "depends": [
+          "libwebkit2gtk-4.1-0",
+          "libgtk-3-0",
+          "libayatana-appindicator3-1"
+        ],
+        "desktopTemplate": "./desktop.hbs"
+      },
+      "rpm": {
+        "depends": [
+          "webkit2gtk4.1",
+          "gtk3",
+          "libappindicator-gtk3"
+        ],
+        "desktopTemplate": "./desktop.hbs"
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IENFMkIwQjJDMjFGRjUwN0YKUldSL1VQOGhMQXNyenVKNklIalJER0llOFpKR2JsWlhDM3NsSWdSeGhlYXl3ZXZrY2orTEdIMkUK",
+      "endpoints": []
+    },
+    "deep-link": {
+      "mobile": [],
+      "desktop": {
+        "schemes": ["qwen"]
+      }
+    }
+  }
+}
