@@ -98,11 +98,7 @@ pub async fn mcp_client_tool_call(
     let r = bridge
         .send(
             "callTool",
-<<<<<<< HEAD
             serde_json::to_value(&params).map_err(|e| e.to_string())?,
-=======
-            serde_json::to_value(&params).unwrap_or_default(),
->>>>>>> bec7255 (Fix: Upload medias e username)
         )
         .await
         .map_err(|e| e.to_string());
@@ -191,7 +187,6 @@ pub async fn mcp_client_update_config(
     let mut merged = config;
     let had_qwen_core = merged.contains_key("qwen-core");
 
-<<<<<<< HEAD
     // Do not merge back deleted servers: only insert qwen-core if this is initial setup (merged empty)
     if merged.is_empty() {
         if let Some(qc) = crate::config::defaults::mcp_servers().get("qwen-core") {
@@ -201,12 +196,6 @@ pub async fn mcp_client_update_config(
         }
     } else if !had_qwen_core {
         // User explicitly removed qwen-core, respect choice — do not re-add
-=======
-    if let Some(qc) = crate::config::defaults::mcp_servers().get("qwen-core") {
-        merged
-            .entry("qwen-core".into())
-            .or_insert_with(|| qc.clone());
->>>>>>> bec7255 (Fix: Upload medias e username)
     }
 
     let merged = crate::config::defaults::normalize_mcp(merged);

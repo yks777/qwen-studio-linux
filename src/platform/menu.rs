@@ -164,30 +164,12 @@ pub fn setup(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
             }
             "zoom_in" | "zoom_out" | "zoom_reset" => {
                 if let Some(w) = crate::app::window_utils::active_webview_window(app) {
-<<<<<<< HEAD
                     let script = match id {
                         "zoom_in" => "document.body.style.zoom = Math.min(2.0, parseFloat(document.body.style.zoom||'1') + 0.1);",
                         "zoom_out" => "document.body.style.zoom = Math.max(0.5, parseFloat(document.body.style.zoom||'1') - 0.1);",
                         _ => "document.body.style.zoom = 1.0;",
                     };
                     let _ = w.eval(script);
-=======
-                    let _ = w.eval(
-                        "window.__qwenSetZoom && window.__qwenSetZoom(Math.min(2.0, (window.__qwenCurrentZoom||1)+0.1));",
-                    );
-                }
-            }
-            "zoom_out" => {
-                if let Some(w) = crate::app::window_utils::active_webview_window(app) {
-                    let _ = w.eval(
-                        "window.__qwenSetZoom && window.__qwenSetZoom(Math.max(0.5, (window.__qwenCurrentZoom||1)-0.1));",
-                    );
-                }
-            }
-            "zoom_reset" => {
-                if let Some(w) = crate::app::window_utils::active_webview_window(app) {
-                    let _ = w.eval("window.__qwenSetZoom && window.__qwenSetZoom(1.0);");
->>>>>>> 4a7b44f (optimization)
                 }
             }
             "new_window" => {

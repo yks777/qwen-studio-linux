@@ -98,15 +98,8 @@ pub async fn open_external_link(app: tauri::AppHandle, url: String) -> Result<bo
     }
     if crate::auth::domains::is_auth_url(&url) {
         if let Some(w) = crate::app::window_utils::active_webview_window_async(&app).await {
-<<<<<<< HEAD
             let js_url = serde_json::to_string(&url).map_err(|e| e.to_string())?;
             let _ = w.eval(format!("window.location.href = {};", js_url));
-=======
-            let _ = w.eval(format!(
-                "window.location.href = '{}';",
-                url.replace('\'', "\\'")
-            ));
->>>>>>> bec7255 (Fix: Upload medias e username)
             return Ok(true);
         }
     }

@@ -50,7 +50,6 @@ pub fn build_init_script() -> String {
         })();
     "#;
 
-<<<<<<< HEAD
             let debug_flag = if cfg!(debug_assertions) {
                 "window.__QWEN_DEBUG = true;"
             } else {
@@ -81,20 +80,4 @@ pub fn build_picker_init_script() -> String {
             [debug_flag, include_str!("core_bridge.js")].join("\n\n")
         })
         .clone()
-=======
-    let debug_flag = if cfg!(debug_assertions) {
-        "window.__QWEN_DEBUG = true;"
-    } else {
-        "window.__QWEN_DEBUG = false;"
-    };
-
-    let modules = [
-        debug_flag,
-        pre_load_script,
-        include_str!("core_bridge.js"),
-        include_str!("platform_bridge.js"),
-        include_str!("settings_injector.js"),
-    ];
-    modules.join("\n\n")
->>>>>>> 0f81055 (Melhorias)
 }

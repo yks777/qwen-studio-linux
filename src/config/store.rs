@@ -12,16 +12,12 @@ pub fn save(settings: &Settings) -> Result<(), String> {
             return Ok(());
         }
     }
-<<<<<<< HEAD
     let tmp = path.with_file_name(format!(
         "{}.tmp",
         path.file_name()
             .and_then(|n| n.to_str())
             .unwrap_or("settings.json")
     ));
-=======
-    let tmp = path.with_extension("json.tmp");
->>>>>>> 0f81055 (Melhorias)
     fs::write(&tmp, &content).map_err(|e| e.to_string())?;
     fs::rename(&tmp, &path).map_err(|e| e.to_string())
 }
@@ -56,16 +52,12 @@ pub fn save_raw(value: &Value) -> Result<(), String> {
             return Ok(());
         }
     }
-<<<<<<< HEAD
     let tmp = path.with_file_name(format!(
         "{}.tmp",
         path.file_name()
             .and_then(|n| n.to_str())
             .unwrap_or("settings.json")
     ));
-=======
-    let tmp = path.with_extension("json.tmp");
->>>>>>> 0f81055 (Melhorias)
     fs::write(&tmp, &content).map_err(|e| e.to_string())?;
     fs::rename(&tmp, &path).map_err(|e| e.to_string())
 }

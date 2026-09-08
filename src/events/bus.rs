@@ -1,8 +1,5 @@
-<<<<<<< HEAD
-=======
 #![allow(dead_code)]
 
->>>>>>> bec7255 (Fix: Upload medias e username)
 use tauri::{Emitter, Listener};
 use tokio::sync::broadcast;
 

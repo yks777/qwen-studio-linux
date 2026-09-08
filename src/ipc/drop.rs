@@ -86,7 +86,6 @@ pub async fn get_file_metas(paths: Vec<String>) -> Result<Vec<DropMeta>, String>
     Ok(metas)
 }
 
-<<<<<<< HEAD
 const MAX_CHUNK_SIZE: usize = 4 * 1024 * 1024;
 
 #[tauri::command]
@@ -125,13 +124,6 @@ pub async fn read_file_chunk(path: String, offset: u64, length: usize) -> Result
         if offset + length as u64 > meta.len() + 1 {
             // clamp is handled by read, but avoid huge allocation already checked
         }
-=======
-#[tauri::command]
-pub async fn read_file_chunk(path: String, offset: u64, length: usize) -> Result<Response, String> {
-    let chunk = tauri::async_runtime::spawn_blocking(move || {
-        let mut file =
-            File::open(&path).map_err(|e| format!("Falha ao abrir '{}': {}", path, e))?;
->>>>>>> bec7255 (Fix: Upload medias e username)
         file.seek(SeekFrom::Start(offset))
             .map_err(|e| format!("Falha ao seek offset {}: {}", offset, e))?;
         let mut buffer = vec![0u8; length];

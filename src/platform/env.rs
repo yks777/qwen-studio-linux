@@ -64,7 +64,6 @@ fn force_software_rendering() -> bool {
 }
 
 pub fn configure_environment() {
-<<<<<<< HEAD
     // KDE Plasma: força x11 (XWayland) incondicional para wry/GTK exibir GtkMenuBar clássico.
     // Igual ao que funcionava em qwen-studio-linux-fix-error/src/platform/env.rs:2 (set_var x11).
     // Opt-in Wayland nativo só via QWEN_USE_WAYLAND=1 ou QWEN_FORCE_WAYLAND=1.
@@ -112,67 +111,6 @@ pub fn configure_environment() {
         std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
     } else {
         std::env::remove_var("WEBKIT_DISABLE_DMABUF_RENDERER");
-=======
-    // Se o usuário forçou software, aplica o workaround independente do backend.
-    if force_software_rendering() {
-        eprintln!("[env] Renderização por software FORÇADA via settings.json");
-        env::set_var("GDK_BACKEND", "x11");
-        env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
-        env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
-        return;
     }
 
-    let backend = detect_display_backend();
-    eprintln!("[env] Backend gráfico detectado: {:?}", backend);
-
-    match backend {
-        DisplayBackend::Wayland => {
-            // Wayland nativo → libera aceleração GPU (compositing + DMABUF).
-            env::remove_var("GDK_BACKEND");
-            env::remove_var("WEBKIT_DISABLE_COMPOSITING_MODE");
-            env::remove_var("WEBKIT_DISABLE_DMABUF_RENDERER");
-        }
-        // X11 / XWayland / desconhecido → mantém workaround de software
-        // que evita a tela em branco em alguns drivers WebKitGTK.
-        _ => {
-            env::set_var("GDK_BACKEND", "x11");
-            env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
-            env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
-        }
->>>>>>> 4a7b44f (optimization)
-    }
-<<<<<<< HEAD
-=======
-=======
-    std::env::set_var("GDK_BACKEND", "x11");
-<<<<<<< HEAD
-    std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
-    std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
->>>>>>> 5877c22 (restore)
-=======
-
-    // Compositing: permite override via env var para evitar tela branca em drivers antigos.
-    // QWEN_DISABLE_COMPOSITING=1 força CPU (seguro), =0 força GPU (mais rápido).
-    // Se não definido, default = GPU off apenas quando necessário (mantém DMABUF off).
-    let disable_compositing = std::env::var("QWEN_DISABLE_COMPOSITING")
-        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
-        .unwrap_or(false);
-    if disable_compositing {
-        std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
-    } else {
-        std::env::remove_var("WEBKIT_DISABLE_COMPOSITING_MODE");
-    }
-
-    // DMABUF renderer desabilitado por padrão (workaround tela branca WebKitGTK <2.42)
-    // Permite override via QWEN_DISABLE_DMABUF_RENDERER=0 para testar GPU path.
-    let disable_dmabuf = std::env::var("QWEN_DISABLE_DMABUF_RENDERER")
-        .map(|v| !(v == "0" || v.eq_ignore_ascii_case("false")))
-        .unwrap_or(true);
-    if disable_dmabuf {
-        std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
-    } else {
-        std::env::remove_var("WEBKIT_DISABLE_DMABUF_RENDERER");
-    }
->>>>>>> 0f81055 (Melhorias)
->>>>>>> a2331e3 (Melhorias)
 }

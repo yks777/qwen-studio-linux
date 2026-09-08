@@ -78,7 +78,6 @@ pub fn attach_file_drop_handler(window: &WebviewWindow) {
     });
 }
 
-<<<<<<< HEAD
 fn resolve_focused_label(app: &tauri::AppHandle, try_sync: bool) -> Option<String> {
     let state = app.try_state::<crate::app::state::AppState>()?;
     if try_sync {
@@ -90,8 +89,6 @@ fn resolve_focused_label(app: &tauri::AppHandle, try_sync: bool) -> Option<Strin
     }
 }
 
-=======
->>>>>>> bec7255 (Fix: Upload medias e username)
 /// Returns the most relevant window to act on for window-scoped commands
 /// (zoom, devtools, reload, minimize, etc.).
 ///
@@ -102,19 +99,9 @@ fn resolve_focused_label(app: &tauri::AppHandle, try_sync: bool) -> Option<Strin
 /// Uses `try_read` instead of `blocking_read` so it never panics when called
 /// from a `tokio-rt-worker`.
 pub fn active_webview_window(app: &tauri::AppHandle) -> Option<WebviewWindow> {
-<<<<<<< HEAD
     if let Some(label) = resolve_focused_label(app, true) {
         if let Some(w) = app.get_webview_window(&label) {
             return Some(w);
-=======
-    if let Some(state) = app.try_state::<crate::app::state::AppState>() {
-        if let Ok(last) = state.last_focused.try_read() {
-            if let Some(label) = last.as_ref() {
-                if let Some(w) = app.get_webview_window(label) {
-                    return Some(w);
-                }
-            }
->>>>>>> bec7255 (Fix: Upload medias e username)
         }
     }
 

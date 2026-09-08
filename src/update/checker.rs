@@ -31,12 +31,7 @@ static HTTP_CLIENT: LazyLock<reqwest::Client> = LazyLock::new(|| {
 
 pub async fn fetch_latest_version() -> Result<(String, String, Option<String>), String> {
     let url = "https://api.github.com/repos/yks777/qwen-studio-linux/releases/latest";
-<<<<<<< HEAD
     let resp = HTTP_CLIENT
-=======
-    let client = reqwest::Client::new();
-    let resp = client
->>>>>>> bec7255 (Fix: Upload medias e username)
         .get(url)
         .header("User-Agent", "qwen-studio-linux")
         .send()
