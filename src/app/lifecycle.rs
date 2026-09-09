@@ -276,15 +276,50 @@ fn ensure_session_capture(app: &AppHandle) {
 fn check_system_prerequisites() {
     // Run blocking check off the main thread with timeout to avoid stalling setup
     std::thread::spawn(|| {
-        let result = std::process::Command::new("gst-inspect-1.0")
-            .arg("autoaudiosink")
-            .stdout(std::process::Stdio::null())
-            .stderr(std::process::Stdio::null())
-            .status();
-        if let Ok(status) = result {
-            if !status.success() {
-                log::warn!("[System] GStreamer 'autoaudiosink' plugin not found");
+        // Check critical GStreamer elements that WebKit's MediaPlayer needs.
+        // Missing appsink/appsrc/autoaudiosink → WebKit aborta (SIGABRT) como visto em
+        // journalctl: "GStreamer element appsink not found" + g_object_set(NULL).
+        // Com bundleMediaFramework:true o AppImage já embute, mas host minimal pode faltar.
+        let critical = ["appsink", "appsrc", "autoaudiosink"];
+        for elem in critical {
+            let result = std::process::Command::new("gst-inspect-1.0")
+                .arg(elem)
+                .stdout(std::process::Stdio::null())
+                .stderr(std::process::Stdio::null())
+                .status();
+            match result {
+                Ok(status) if status.success() => {
+                    log::info!("[System] GStreamer '{}' OK", elem);
+                }
+                Ok(_) => {
+                    log::warn!(
+                        "[System] GStreamer '{}' plugin not found — WebKit media may crash. Install gst-plugins-base/good or use AppImage with bundleMediaFramework",
+                        elem
+                    );
+                }
+                Err(e) => {
+                    log::warn!("[System] gst-inspect-1.0 failed for '{}': {}", elem, e);
+                }
             }
+        }
+
+        // Diagnóstico de env vars que afetam WebKit
+        for var in [
+            "WEBKIT_DISABLE_COMPOSITING_MODE",
+            "WEBKIT_DISABLE_DMABUF_RENDERER",
+            "GST_PLUGIN_PATH",
+            "GST_PLUGIN_SYSTEM_PATH",
+            "GST_PLUGIN_SCANNER",
+        ] {
+            if let Ok(val) = std::env::var(var) {
+                log::info!("[System] {}={}", var, val);
+            }
+        }
+        if std::env::var("APPIMAGE").is_ok() {
+            log::info!(
+                "[System] Running as AppImage: {}",
+                std::env::var("APPIMAGE").unwrap_or_default()
+            );
         }
     });
 }
