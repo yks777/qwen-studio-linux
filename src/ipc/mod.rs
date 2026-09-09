@@ -1,6 +1,7 @@
 pub mod clipboard;
 pub mod crash;
 pub mod dialog;
+pub mod download;
 pub mod drop;
 pub mod export;
 pub mod settings;

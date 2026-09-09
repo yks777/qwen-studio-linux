@@ -64,6 +64,7 @@ pub fn run() {
             ipc::drop::read_file_chunk,
             ipc::dialog::show_native_dialog,
             ipc::dialog::request_file_access,
+            ipc::download::save_downloaded_file,
             ipc::settings::get_setting,
             ipc::settings::set_setting,
             ipc::export::export_chat,

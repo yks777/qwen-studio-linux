@@ -525,6 +525,205 @@
         } catch (_) {}
     }, 1000);
 
+    // --- download interceptor: abre diálogo "Salvar como" do SO ---
+    // Intercepta <a download>, blob: e data: para exibir o seletor nativo
+    // (xdg-desktop-portal -> Dolphin/Nautilus/qualquer gerenciador padrão).
+    let __downloadInProgress = false;
+
+    function sanitizeFilenameForDownload(name) {
+        if (!name || typeof name !== 'string') return 'download';
+        // remove path, keep basename
+        let base = name.split('/').pop().split('\\').pop().trim();
+        if (!base) base = 'download';
+        // strip query/hash
+        base = base.split('?')[0].split('#')[0];
+        if (base.length > 200) {
+            const dot = base.lastIndexOf('.');
+            if (dot > 0) {
+                const ext = base.slice(dot);
+                base = base.slice(0, 200 - ext.length) + ext;
+            } else {
+                base = base.slice(0, 200);
+            }
+        }
+        return base || 'download';
+    }
+
+    function filenameFromUrl(url, fallback) {
+        try {
+            if (url.startsWith('data:')) {
+                // data:mime;... — no filename; use fallback or guess ext
+                const m = url.slice(5, 80).split(';')[0].split(',')[0].trim();
+                const extMap = { 'image/png':'png','image/jpeg':'jpg','image/gif':'gif','image/webp':'webp','application/pdf':'pdf','text/plain':'txt','text/csv':'csv' };
+                const ext = extMap[m] || '';
+                const base = fallback && fallback.includes('.') ? fallback : (fallback || 'download');
+                if (ext && !base.includes('.')) return base + '.' + ext;
+                return base;
+            }
+            if (url.startsWith('blob:')) {
+                return sanitizeFilenameForDownload(fallback || 'download');
+            }
+            const u = new URL(url, location.href);
+            const pathPart = u.pathname.split('/').pop();
+            if (pathPart && pathPart.includes('.')) return sanitizeFilenameForDownload(decodeURIComponent(pathPart));
+            if (pathPart && pathPart.length > 1) return sanitizeFilenameForDownload(decodeURIComponent(pathPart));
+        } catch (_) {}
+        return sanitizeFilenameForDownload(fallback || 'download');
+    }
+
+    function blobToBase64(blob) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                try {
+                    const res = reader.result; // data:mime;base64,...
+                    const comma = res.indexOf(',');
+                    resolve(comma >= 0 ? res.slice(comma + 1) : res);
+                } catch (e) { reject(e); }
+            };
+            reader.onerror = () => reject(reader.error || new Error('FileReader failed'));
+            reader.readAsDataURL(blob);
+        });
+    }
+
+    async function handleDownloadRequest(href, suggestedName, mimeHint) {
+        if (__downloadInProgress) return;
+        // filter out non-download navigations
+        const isBlob = href.startsWith('blob:');
+        const isData = href.startsWith('data:');
+        const hasDownloadAttr = !!suggestedName;
+        // also treat blob/data as download even without attr
+        if (!isBlob && !isData && !hasDownloadAttr) return;
+        // ignore javascript: / mailto: etc
+        if (href.startsWith('javascript:') || href.startsWith('mailto:')) return;
+
+        __downloadInProgress = true;
+        try {
+            if (window.__QWEN_DEBUG) console.log('[Qwen Studio] interceptando download:', href.slice(0, 120), 'nome:', suggestedName);
+            const filename = filenameFromUrl(href, suggestedName);
+            // fetch the resource (works for blob: and data: and same-origin https:)
+            let blob;
+            try {
+                const resp = await fetch(href);
+                if (!resp.ok) throw new Error('fetch status ' + resp.status);
+                blob = await resp.blob();
+            } catch (fetchErr) {
+                // fallback: data: manual decode
+                if (isData) {
+                    const comma = href.indexOf(',');
+                    const meta = href.slice(5, comma);
+                    const isB64 = meta.includes('base64');
+                    const mimePart = meta.split(';')[0] || mimeHint || 'application/octet-stream';
+                    let b64 = href.slice(comma + 1);
+                    if (!isB64) b64 = btoa(decodeURIComponent(b64));
+                    const invoke = window.__TAURI__?.core?.invoke;
+                    if (invoke) {
+                        await invoke('save_downloaded_file', { filename, mime: mimePart, dataBase64: b64 });
+                        if (window.__QWEN_DEBUG) console.log('[Qwen Studio] download data: salvo via fallback', filename);
+                    }
+                    return;
+                }
+                console.warn('[Qwen Studio] falha ao buscar blob para download:', fetchErr);
+                // fallback para https: tenta abrir externamente para não perder o arquivo
+                if (href.startsWith('http://') || href.startsWith('https://')) {
+                    try { window.electronAPI?.open_external_link?.(href); } catch (_) {}
+                }
+                return;
+            }
+            const mime = blob.type || mimeHint || 'application/octet-stream';
+            // 100 MiB cap consistent with Rust
+            if (blob.size > 100 * 1024 * 1024) {
+                console.warn('[Qwen Studio] arquivo muito grande para download (100 MiB):', blob.size);
+                alert('Arquivo muito grande (limite 100 MB): ' + filename);
+                return;
+            }
+            const base64 = await blobToBase64(blob);
+            const invoke = window.__TAURI__?.core?.invoke;
+            if (!invoke) {
+                console.warn('[Qwen Studio] Tauri invoke indisponível para salvar download');
+                return;
+            }
+            try {
+                const savedPath = await invoke('save_downloaded_file', { filename, mime, dataBase64: base64 });
+                if (window.__QWEN_DEBUG) console.log('[Qwen Studio] download salvo em:', savedPath);
+            } catch (saveErr) {
+                const msg = String(saveErr || '');
+                // "No file selected" = usuário cancelou -> silencioso
+                if (msg.includes('No file selected') || msg.includes('cancel')) {
+                    if (window.__QWEN_DEBUG) console.log('[Qwen Studio] salvamento cancelado pelo usuário');
+                } else {
+                    console.warn('[Qwen Studio] falha ao salvar download:', saveErr);
+                }
+            }
+        } finally {
+            // small cooldown to avoid double-fire from click+patched click
+            setTimeout(() => { __downloadInProgress = false; }, 300);
+        }
+    }
+
+    // 1) Captura cliques em <a> (fase capture) — pega cliques do usuário
+    document.addEventListener('click', function(e) {
+        // only left click without modifiers that force new tab
+        if (e.defaultPrevented) return;
+        if (e.button !== 0) return;
+        if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+        const anchor = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+        if (!anchor) return;
+        const href = anchor.getAttribute('href') || anchor.href || '';
+        if (!href) return;
+        const downloadAttr = anchor.getAttribute('download'); // null if absent, "" if present without value
+        const hasDownload = anchor.hasAttribute('download');
+        const isBlob = href.startsWith('blob:');
+        const isData = href.startsWith('data:');
+        if (!hasDownload && !isBlob && !isData) return;
+        const suggested = hasDownload ? (downloadAttr || anchor.download || '') : '';
+        // intercept
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        const nameHint = suggested || anchor.download || '';
+        handleDownloadRequest(href, nameHint || null, '');
+    }, true);
+
+    // 2) Monkey-patch <a>.click() para pegar downloads programáticos
+    // (ex.: chat.qwen.ai cria <a download> temporário e chama .click())
+    (function patchAnchorClick() {
+        const origClick = HTMLAnchorElement.prototype.click;
+        HTMLAnchorElement.prototype.click = function() {
+            try {
+                const href = this.getAttribute('href') || this.href || '';
+                const hasDownload = this.hasAttribute('download');
+                const isBlob = href.startsWith('blob:');
+                const isData = href.startsWith('data:');
+                if ((hasDownload || isBlob || isData) && href) {
+                    const suggested = hasDownload ? (this.getAttribute('download') || this.download || '') : '';
+                    // async intercept, don't call original
+                    handleDownloadRequest(href, suggested || null, '');
+                    return;
+                }
+            } catch (err) {
+                console.warn('[Qwen Studio] patchAnchorClick check failed', err);
+            }
+            return origClick.apply(this, arguments);
+        };
+    })();
+
+    // API pública para site/scripts chamarem manualmente se necessário
+    window.__qwenSaveBlob = async function(blob, filename) {
+        if (!(blob instanceof Blob)) {
+            console.warn('[Qwen Studio] __qwenSaveBlob espera um Blob');
+            return;
+        }
+        const name = sanitizeFilenameForDownload(filename || blob.name || 'download');
+        const b64 = await blobToBase64(blob);
+        const invoke = window.__TAURI__?.core?.invoke;
+        if (!invoke) throw new Error('Tauri invoke unavailable');
+        return invoke('save_downloaded_file', { filename: name, mime: blob.type || 'application/octet-stream', dataBase64: b64 });
+    };
+    window.__qwenSaveUrl = function(url, filename) {
+        return handleDownloadRequest(url, filename || null, '');
+    };
+
     window.open = function(url, target, features) {
         if (url && typeof url === 'string' && url.includes('qwenlm.io')) {
             if (window.__TAURI__?.core?.invoke) {

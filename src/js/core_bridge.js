@@ -38,6 +38,7 @@
         set_setting: (key, value) => invoke('set_setting', { key, value }),
         show_native_dialog: (options) => invoke('show_native_dialog', { options }),
         request_file_access: (purpose, returnFile) => invoke('request_file_access', { purpose, returnFile }),
+        save_downloaded_file: (filename, mime, dataBase64) => invoke('save_downloaded_file', { filename, mime, dataBase64 }),
         read_clipboard_image: () => invoke('read_clipboard_image'),
         on_event: function(type, callback) {
             if (!eventListeners[type]) eventListeners[type] = [];

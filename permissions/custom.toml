@@ -39,6 +39,7 @@ commands.allow = [
   "open_external_link",
   "show_native_dialog",
   "request_file_access",
+  "save_downloaded_file",
   "switch_theme",
   "switch_ln",
   "update_title_bar_for_system_theme",
